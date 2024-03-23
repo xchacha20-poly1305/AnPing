@@ -1,55 +1,50 @@
 package anping
 
 import (
-	"errors"
-	"net/url"
-	"strings"
+	"context"
+	"io"
+	"time"
 )
 
-type AnPinger struct {
-	Addr    *url.URL
-	Timeout int // ms
-	Count   int
-}
+type InitPinger func(logWriter io.Writer) AnPinger
 
-func New(addr string) (*AnPinger, error) {
-	if !strings.Contains(addr, "://") {
-		// Default to use ICMP
-		addr = "icmp://" + addr
-	}
+var AnPingerCreator = map[string]InitPinger{}
 
-	u, err := url.Parse(addr)
-	if err != nil {
-		return nil, err
-	}
+// AnPinger is an abstract interface to ping.
+// You can absorb it by canal context.
+type AnPinger interface {
+	// Run runs AnPinger.
+	// If you want to control to stop it, please use RunContext.
+	Run()
 
-	// 检测是否包含端口
-	switch u.Port() {
-	case "":
-		if strings.HasSuffix(u.Host, ":") {
-			u.Host += "443"
-		} else {
-			u.Host += ":443"
-		}
-	}
+	// RunContext runs AnPinger with context. It will block the thread.
+	RunContext(ctx context.Context)
 
-	return &AnPinger{
-		Addr:    u,
-		Timeout: 1,
-		Count:   -1,
-	}, nil
-}
+	// Clean used to do some chores when finished. Such as print log.
+	Clean() error
 
-func (a *AnPinger) Start() error {
+	// Protocol returns the protocol of AnPinger.
+	Protocol() string
 
-	switch a.Addr.Scheme {
-	case "", "icmp":
-		a.Icmpping()
-	case "tcp":
-		a.Tcpping()
-	default:
-		return errors.New("Unknow protocol: " + a.Addr.Scheme)
-	}
+	SetLogger(logger Logger)
 
-	return nil
+	// Address returns the target address.
+	Address() string
+
+	// SetAddress sets the target address.
+	SetAddress(address string) error
+
+	// Number returns the number of runs.
+	Number() int
+
+	// SetNumber sets the number of runs.
+	// If number <= 0, AnPinger will run forever.
+	SetNumber(number int)
+
+	Timeout() int32
+
+	SetTimeout(timeout int32)
+
+	Interval() time.Duration
+	SetInterval(i time.Duration)
 }

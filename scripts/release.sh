@@ -1,11 +1,11 @@
 #!/bin/bash
 
 if [[ -z "$TAG_NAME" ]]; then
-    TAG_NAME=$(git rev-parse --short HEAD || echo "Unknow")
+    TAG_NAME=$(git rev-parse --short HEAD || echo "Unknown")
 fi
 
 export CGO_ENABLED=0
-platforms=("darwin" "linux" "windows" "freebsd" "android")
+platforms=("linux" "android")
 architectures=("amd64" "386" "arm" "arm64")
 
 rm -rf ./build/releases
@@ -14,7 +14,7 @@ mkdir -p ./build/releases
 for os in "${platforms[@]}"; do
 
     for arch in "${architectures[@]}"; do
-        output_name="AnPing-${os}-${arch}"
+        output_name="anping-${os}-${arch}"
         if [ "$os" == "windows" ]; then
             output_name="${output_name}.exe"
         fi
@@ -26,8 +26,8 @@ for os in "${platforms[@]}"; do
 
         echo "Building ${output_name}..."
         GOOS="$os" GOARCH="$arch" go build -o "build/releases/${output_name}" \
-            -tags "urfave_cli_no_docs" \
-            -trimpath -ldflags "-w -s -X main.version=${TAG_NAME}" ./cmd/AnPing
+            -tags "" \
+            -trimpath -ldflags "-w -s -X main.version=${TAG_NAME} -buildid=" ./cmd/anping
     done
 
 done
