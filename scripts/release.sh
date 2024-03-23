@@ -5,7 +5,7 @@ if [[ -z "$TAG_NAME" ]]; then
 fi
 
 export CGO_ENABLED=0
-platforms=("darwin" "linux" "windows" "freebsd" "android")
+platforms=("linux" "android")
 architectures=("amd64" "386" "arm" "arm64")
 
 rm -rf ./build/releases
