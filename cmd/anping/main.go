@@ -4,7 +4,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"io"
 	"log"
 	"os"
 	"os/signal"
@@ -66,11 +65,7 @@ func main() {
 		log.Fatalf("Not found protocol: %s\n", args[0])
 	}
 
-	var writer io.Writer
-	if !quite {
-		writer = os.Stdout
-	}
-	pinger := creator(writer)
+	pinger := creator(os.Stdout)
 	err := pinger.SetAddress(args[1])
 	if err != nil {
 		log.Fatalln(err)
@@ -78,6 +73,7 @@ func main() {
 	pinger.SetNumber(number)
 	pinger.SetTimeout(int32(timeout))
 	pinger.SetInterval(interval)
+	pinger.SetQuite(quite)
 
 	osSignals := make(chan os.Signal, 1)
 	signal.Notify(osSignals, os.Interrupt, syscall.SIGTERM, syscall.SIGHUP)

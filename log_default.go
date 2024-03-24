@@ -22,7 +22,7 @@ func (d *DefaultLogger) OnStart(opts *Options) {
 }
 
 func (d *DefaultLogger) OnRecv(opts *Options, t int) {
-	if d.Writer == nil {
+	if opts.Quite() || d.Writer == nil {
 		return
 	}
 
@@ -30,7 +30,7 @@ func (d *DefaultLogger) OnRecv(opts *Options, t int) {
 }
 
 func (d *DefaultLogger) OnLost(opts *Options, errMessage string) {
-	if d.Writer == nil {
+	if opts.Quite() || d.Writer == nil {
 		return
 	}
 

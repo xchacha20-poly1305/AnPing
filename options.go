@@ -19,6 +19,7 @@ type Options struct {
 	address  string
 	timeout  int32
 	interval time.Duration
+	quite    bool
 
 	PrintedLogOnce sync.Once
 
@@ -87,6 +88,14 @@ func (o *Options) SetInterval(t time.Duration) {
 	}
 
 	o.interval = t
+}
+
+func (o *Options) Quite() bool {
+	return o.quite
+}
+
+func (o *Options) SetQuite(yes bool) {
+	o.quite = yes
 }
 
 func (o *Options) Add(t int, success bool) {
