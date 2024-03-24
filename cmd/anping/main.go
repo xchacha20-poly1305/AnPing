@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/xchacha20-poly1305/anping"
-	_ "github.com/xchacha20-poly1305/anping/include"
+	"github.com/xchacha20-poly1305/anping/include"
 )
 
 var version = "Unknown"
@@ -55,7 +55,7 @@ func main() {
 			printVersion()
 			return
 		}
-		args = append(args, "icmp")
+		args = append(args, include.DefaultProtocol)
 		// turn to: "icmp <address>"
 		slices.Reverse(args)
 	}
