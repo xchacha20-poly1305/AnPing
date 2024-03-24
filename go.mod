@@ -1,6 +1,6 @@
 module github.com/xchacha20-poly1305/anping
 
-go 1.18
+go 1.22
 
 require (
 	github.com/sagernet/sing v0.3.4-beta.1

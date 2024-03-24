@@ -2,10 +2,13 @@ package icmpping
 
 import (
 	"context"
-	"errors"
 	"io"
+	"math/rand/v2"
 	"net"
+	"time"
 
+	E "github.com/sagernet/sing/common/exceptions"
+	M "github.com/sagernet/sing/common/metadata"
 	"github.com/xchacha20-poly1305/anping"
 	"github.com/xchacha20-poly1305/libping"
 )
@@ -40,7 +43,7 @@ func (i *IcmpPinger) Run() {
 }
 
 func (i *IcmpPinger) RunContext(ctx context.Context) {
-	defer i.logger.OnFinish(i.Options)
+	i.logger.OnStart(i.Options)
 	for {
 		select {
 		case <-ctx.Done():
@@ -48,10 +51,22 @@ func (i *IcmpPinger) RunContext(ctx context.Context) {
 		default:
 		}
 
-		t, err := libping.IcmpPing(i.Address, i.Timeout)
+		t, err := libping.IcmpPing(i.Address(), i.Timeout())
 		i.Add(int(t), err == nil)
-		// TODO: log
+		if err != nil {
+			i.logger.OnLost(i.Options, err.Error())
+			time.Sleep(i.Interval())
+			continue
+		}
+
+		i.logger.OnRecv(i.Options, int(t))
+		time.Sleep(i.Interval())
 	}
+}
+
+func (i *IcmpPinger) Clean() error {
+	i.logger.OnFinish(i.Options)
+	return nil
 }
 
 func (i *IcmpPinger) Protocol() string {
@@ -65,16 +80,18 @@ func (i *IcmpPinger) SetLogger(logger anping.Logger) {
 func (i *IcmpPinger) SetAddress(address string) error {
 	_, _, err := net.SplitHostPort(address)
 	if err == nil {
-		return errors.New("ICMP shouldn't has port")
+		return E.New("ICMP shouldn't has port")
 	}
-	i.Address = address
+
+	if M.IsDomainName(address) {
+		ip, err := net.LookupIP(address)
+		if err != nil {
+			return E.Cause(err, "look up ip")
+		}
+		i.Options.SetAddress(ip[rand.IntN(len(ip))].String())
+		return nil
+	}
+
+	i.Options.SetAddress(address)
 	return nil
-}
-
-func (i *IcmpPinger) SetNumber(number int) {
-	i.Number = number
-}
-
-func (i *IcmpPinger) SetTimeout(timeout int32) {
-	i.Timeout = timeout
 }
