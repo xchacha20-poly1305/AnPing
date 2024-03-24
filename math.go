@@ -19,7 +19,7 @@ func percent[T constraints.Integer | constraints.Float](dividend, divisor T) str
 		// 0 cannot be used as a divisor.
 		return "0.00%"
 	}
-	result := fmt.Sprintf("%.2f", float64(dividend)/float64(divisor))
+	result := fmt.Sprintf("%.2f", float64(dividend)/float64(divisor)*100)
 	/*
 		switch result {
 		case "+Inf":
