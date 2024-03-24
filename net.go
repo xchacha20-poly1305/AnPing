@@ -29,7 +29,7 @@ func LookupSingleIP(domain string, prefer DomainStrategy) (ip net.IP, err error)
 		var ipv6s []net.IP
 
 		for _, singleIP := range ips {
-			if ip.To16() != nil {
+			if ip.To4() == nil {
 				ipv6s = append(ipv6s, singleIP)
 			}
 		}
