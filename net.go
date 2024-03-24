@@ -55,6 +55,8 @@ func LookupSingleIP(domain string, prefer DomainStrategy) (ip net.IP, err error)
 		}
 
 		ip = ipv4s[rand.IntN(l)]
+	default:
+		return nil, E.New("invalid domain strategy: ", prefer)
 	}
 
 	return
