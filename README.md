@@ -2,13 +2,14 @@
 
 AnPing is a tool to ping.
 
-| OS    | Protocol |
-|-------|----------|
-| Linux | ICMP     |
+| OS    | Protocol  |
+|-------|-----------|
+| Linux | ICMP, TCP |
+| Stub  | TCP       |
 
 # Usage
 
-example: 
+example:
 
 ```shell
 anping -c 1 1.1.1.1 # default to use ICMP

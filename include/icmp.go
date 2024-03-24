@@ -3,5 +3,7 @@
 package include
 
 import (
-	_ "github.com/xchacha20-poly1305/anping/icmpping"
+	"github.com/xchacha20-poly1305/anping/icmpping"
 )
+
+const DefaultProtocol = icmpping.Protocol

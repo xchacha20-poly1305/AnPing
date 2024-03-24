@@ -15,11 +15,12 @@ const (
 )
 
 type Options struct {
-	number   int
-	address  string
-	timeout  int32
-	interval time.Duration
-	quite    bool
+	number         int
+	address        string
+	timeout        int32
+	interval       time.Duration
+	quite          bool
+	domainStrategy DomainStrategy
 
 	PrintedLogOnce sync.Once
 
@@ -52,8 +53,9 @@ func (o *Options) Address() string {
 	return o.address
 }
 
-func (o *Options) SetAddress(address string) {
+func (o *Options) SetAddress(address string) error {
 	o.address = address
+	return nil
 }
 
 func (o *Options) Number() int {
@@ -96,6 +98,14 @@ func (o *Options) Quite() bool {
 
 func (o *Options) SetQuite(yes bool) {
 	o.quite = yes
+}
+
+func (o *Options) DomainStrategy() DomainStrategy {
+	return o.domainStrategy
+}
+
+func (o *Options) SetDomainStrategy(d DomainStrategy) {
+	o.domainStrategy = d
 }
 
 func (o *Options) Add(t int, success bool) {

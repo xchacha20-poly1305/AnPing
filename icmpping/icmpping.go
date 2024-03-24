@@ -3,7 +3,6 @@ package icmpping
 import (
 	"context"
 	"io"
-	"math/rand/v2"
 	"net"
 	"time"
 
@@ -62,8 +61,6 @@ func (i *IcmpPinger) RunContext(ctx context.Context) {
 		i.logger.OnRecv(i.Options, int(t))
 		time.Sleep(i.Interval())
 	}
-
-	_ = i.Clean()
 }
 
 func (i *IcmpPinger) Clean() error {
@@ -90,14 +87,14 @@ func (i *IcmpPinger) SetAddress(address string) error {
 	}
 
 	if M.IsDomainName(address) {
-		ip, err := net.LookupIP(address)
+		ip, err := anping.LookupSingleIP(address, i.DomainStrategy())
 		if err != nil {
-			return E.Cause(err, "look up ip")
+			return err
 		}
-		i.Options.SetAddress(ip[rand.IntN(len(ip))].String())
+		_ = i.Options.SetAddress(ip.String())
 		return nil
 	}
 
-	i.Options.SetAddress(address)
+	_ = i.Options.SetAddress(address)
 	return nil
 }

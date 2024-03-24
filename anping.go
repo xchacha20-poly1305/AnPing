@@ -48,7 +48,10 @@ type AnPinger interface {
 	Interval() time.Duration
 	SetInterval(i time.Duration)
 
-	// Quite returns true if enabled quite mode
+	// Quite returns true if enabled quite mode.
 	Quite() bool
 	SetQuite(yes bool)
+
+	DomainStrategy() DomainStrategy
+	SetDomainStrategy(d DomainStrategy)
 }
