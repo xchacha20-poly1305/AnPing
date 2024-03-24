@@ -44,7 +44,7 @@ func (i *IcmpPinger) Run() {
 
 func (i *IcmpPinger) RunContext(ctx context.Context) {
 	i.logger.OnStart(i.Options)
-	for {
+	for j := i.Number(); j != 0; j-- {
 		select {
 		case <-ctx.Done():
 			return
@@ -62,10 +62,16 @@ func (i *IcmpPinger) RunContext(ctx context.Context) {
 		i.logger.OnRecv(i.Options, int(t))
 		time.Sleep(i.Interval())
 	}
+
+	_ = i.Clean()
 }
 
 func (i *IcmpPinger) Clean() error {
-	i.logger.OnFinish(i.Options)
+	i.Options.PrintedLogOnce.Do(
+		func() {
+			i.logger.OnFinish(i.Options)
+		},
+	)
 	return nil
 }
 

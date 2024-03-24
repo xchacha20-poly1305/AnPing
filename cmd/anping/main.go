@@ -82,7 +82,13 @@ func main() {
 	osSignals := make(chan os.Signal, 1)
 	signal.Notify(osSignals, os.Interrupt, syscall.SIGTERM, syscall.SIGHUP)
 	ctx, cancel := context.WithCancel(context.Background())
-	go pinger.RunContext(ctx)
+	go func() {
+		defer func() {
+			cancel()
+			close(osSignals)
+		}()
+		pinger.RunContext(ctx)
+	}()
 	<-osSignals
 	cancel()
 	_ = pinger.Clean()

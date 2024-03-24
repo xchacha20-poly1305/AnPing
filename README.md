@@ -11,7 +11,7 @@ AnPing is a tool to ping.
 example: 
 
 ```shell
-anping 1.1.1.1 # default to use ICMP
+anping -c 1 1.1.1.1 # default to use ICMP
 
 anping icmp 1.1.1.1
 ```

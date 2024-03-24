@@ -2,6 +2,7 @@ package anping
 
 import (
 	"math"
+	"sync"
 	"time"
 
 	"github.com/sagernet/sing/common/atomic"
@@ -18,6 +19,8 @@ type Options struct {
 	address  string
 	timeout  int32
 	interval time.Duration
+
+	PrintedLogOnce sync.Once
 
 	// probed is the time that probed.
 	probed atomic.Uint64
@@ -57,6 +60,11 @@ func (o *Options) Number() int {
 }
 
 func (o *Options) SetNumber(number int) {
+	if number == 0 {
+		o.number = Number
+		return
+	}
+
 	o.number = number
 }
 
