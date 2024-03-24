@@ -5,7 +5,7 @@ if [[ -z "$TAG_NAME" ]]; then
 fi
 
 export CGO_ENABLED=0
-platforms=("linux" "android")
+platforms=("linux")
 architectures=("amd64" "386" "arm" "arm64")
 
 rm -rf ./build/releases
@@ -18,14 +18,9 @@ for os in "${platforms[@]}"; do
         if [ "$os" == "windows" ]; then
             output_name="${output_name}.exe"
         fi
-        # if [ "$os" == "android" ]; then
-        #     export CGO_ENABLED=1
-        # else
-        #     export CGO_ENABLED=0
-        # fi
 
         echo "Building ${output_name}..."
-        GOOS="$os" GOARCH="$arch" go build -o "build/releases/${output_name}" \
+        GOOS="$os" GOARCH="$arch" go build -v -o "build/releases/${output_name}" \
             -tags "" \
             -trimpath -ldflags "-w -s -X main.version=${TAG_NAME} -buildid=" ./cmd/anping
     done
