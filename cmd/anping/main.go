@@ -25,6 +25,10 @@ var (
 	quite    bool
 	number   int
 	timeout  int
+
+	prefer6        bool
+	prefer4        bool
+	domainStrategy = anping.PreferNone
 )
 
 func init() {
@@ -35,12 +39,23 @@ func init() {
 	flag.IntVar(&number, "c", anping.Number, "Ping count")
 	flag.IntVar(&timeout, "W", anping.Timeout, "Ping timeout")
 
+	flag.BoolVar(&prefer6, "6", false, "Prefer to IPv6")
+	flag.BoolVar(&prefer4, "4", false, "Prefer to IPv4")
+
 	flag.Parse()
 
 	if showVersion {
 		printVersion()
 		os.Exit(0)
 		return
+	}
+
+	if prefer4 {
+		domainStrategy = anping.PreferIpv4
+	}
+	// Final prefer IPv6.
+	if prefer6 {
+		domainStrategy = anping.PreferIpv6
 	}
 }
 
@@ -74,6 +89,7 @@ func main() {
 	pinger.SetTimeout(int32(timeout))
 	pinger.SetInterval(interval)
 	pinger.SetQuite(quite)
+	pinger.SetDomainStrategy(domainStrategy)
 
 	osSignals := make(chan os.Signal, 1)
 	signal.Notify(osSignals, os.Interrupt, syscall.SIGTERM, syscall.SIGHUP)
