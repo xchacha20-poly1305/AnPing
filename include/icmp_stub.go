@@ -1,4 +1,4 @@
-//go:build without_icmp
+//go:build without_icmp || !linux
 
 package include
 
