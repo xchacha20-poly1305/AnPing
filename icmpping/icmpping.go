@@ -81,13 +81,13 @@ func (i *IcmpPinger) SetLogger(logger anping.Logger) {
 }
 
 func (i *IcmpPinger) SetAddress(address string) error {
-	_, _, err := net.SplitHostPort(address)
+	domain, _, err := net.SplitHostPort(address)
 	if err == nil {
 		return E.New("ICMP shouldn't has port")
 	}
 
-	if M.IsDomainName(address) {
-		ip, err := anping.LookupSingleIP(address, i.DomainStrategy())
+	if M.IsDomainName(domain) {
+		ip, err := anping.LookupSingleIP(domain, i.DomainStrategy())
 		if err != nil {
 			return err
 		}
