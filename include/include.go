@@ -6,4 +6,5 @@ package include
 
 import (
 	_ "github.com/xchacha20-poly1305/anping/implement/icmpping"
+	_ "github.com/xchacha20-poly1305/anping/implement/udpping"
 )

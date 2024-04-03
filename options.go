@@ -5,9 +5,11 @@ import (
 )
 
 const (
-	Count    = -1
-	Timeout  = 3000
-	Interval = time.Second
+	Count         = -1
+	Timeout       = 3000
+	Interval      = time.Second
+	Port          = "443"
+	PayloadLength = 20
 )
 
 type Options struct {

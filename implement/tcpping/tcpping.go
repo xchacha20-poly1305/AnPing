@@ -85,7 +85,7 @@ func (t *TcpPinger) SetAddress(address string) error {
 	host, port, err := net.SplitHostPort(address)
 	if err != nil {
 		host = address
-		port = "443"
+		port = anping.Port
 	}
 
 	if M.IsDomainName(host) {
