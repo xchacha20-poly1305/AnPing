@@ -23,7 +23,7 @@ var (
 
 	interval time.Duration
 	quite    bool
-	number   int
+	count    int
 	timeout  int
 
 	prefer6        bool
@@ -36,7 +36,7 @@ func init() {
 
 	flag.DurationVar(&interval, "i", anping.Interval, "Ping interval")
 	flag.BoolVar(&quite, "q", false, "Quite mode")
-	flag.IntVar(&number, "c", anping.Number, "Ping count")
+	flag.IntVar(&count, "c", anping.Count, "Ping count")
 	flag.IntVar(&timeout, "W", anping.Timeout, "Ping timeout")
 
 	flag.BoolVar(&prefer6, "6", false, "Prefer to IPv6")
@@ -85,11 +85,13 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	pinger.SetNumber(number)
-	pinger.SetTimeout(int32(timeout))
-	pinger.SetInterval(interval)
-	pinger.SetQuite(quite)
-	pinger.SetDomainStrategy(domainStrategy)
+
+	opts := pinger.Options()
+	opts.Count = count
+	opts.Timeout = int32(timeout)
+	opts.Interval = interval
+	opts.Quite = quite
+	opts.DomainStrategy = domainStrategy
 
 	osSignals := make(chan os.Signal, 1)
 	signal.Notify(osSignals, os.Interrupt, syscall.SIGTERM, syscall.SIGHUP)

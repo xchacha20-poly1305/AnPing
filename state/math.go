@@ -1,4 +1,4 @@
-package anping
+package state
 
 import (
 	"fmt"
@@ -6,14 +6,18 @@ import (
 	"github.com/sagernet/sing/common/x/constraints"
 )
 
-func diffAbs[T constraints.Integer | constraints.Float](a, b T) T {
+type Number interface {
+	constraints.Integer | constraints.Float
+}
+
+func diffAbs[T Number](a, b T) T {
 	if a > b {
 		return a - b
 	}
 	return b - a
 }
 
-func percent[T constraints.Integer | constraints.Float](dividend, divisor T) string {
+func percent[T Number](dividend, divisor T) string {
 	switch divisor {
 	case 0:
 		// 0 cannot be used as a divisor.
