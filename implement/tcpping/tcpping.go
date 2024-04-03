@@ -6,7 +6,6 @@ import (
 	"net"
 	"time"
 
-	E "github.com/sagernet/sing/common/exceptions"
 	M "github.com/sagernet/sing/common/metadata"
 	N "github.com/sagernet/sing/common/network"
 	"github.com/xchacha20-poly1305/anping"
@@ -83,13 +82,14 @@ func (t *TcpPinger) SetLogger(logger state.Logger) {
 }
 
 func (t *TcpPinger) SetAddress(address string) error {
-	domain, port, err := net.SplitHostPort(address)
+	host, port, err := net.SplitHostPort(address)
 	if err != nil {
-		return E.Cause(err, "parse address")
+		host = address
+		port = "443"
 	}
 
-	if M.IsDomainName(domain) {
-		ip, err := anping.LookupSingleIP(domain, t.Opt.DomainStrategy)
+	if M.IsDomainName(host) {
+		ip, err := anping.LookupSingleIP(host, t.Opt.DomainStrategy)
 		if err != nil {
 			return err
 		}
