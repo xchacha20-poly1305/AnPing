@@ -1,9 +1,9 @@
-//go:build without_icmp || !linux
+//go:build !linux
 
 package include
 
 import (
-	"github.com/xchacha20-poly1305/anping/tcpping"
+	"github.com/xchacha20-poly1305/anping/implement/tcpping"
 )
 
 const DefaultProtocol = tcpping.Protocol
