@@ -10,6 +10,7 @@ import (
 	M "github.com/sagernet/sing/common/metadata"
 	N "github.com/sagernet/sing/common/network"
 	"github.com/xchacha20-poly1305/anping"
+	"github.com/xchacha20-poly1305/anping/state"
 )
 
 const Protocol = "tcp"
@@ -19,19 +20,17 @@ func init() {
 }
 
 type TcpPinger struct {
-	*anping.Options
+	Opt *anping.Options
+	*state.State
 
-	logger anping.LoggerNotNil
+	logger state.Logger
 }
 
 func New(logWriter io.Writer) anping.AnPinger {
 	return &TcpPinger{
-		Options: anping.NewOptions(),
-		logger: anping.LoggerNotNil{
-			L: &anping.DefaultLogger{
-				Writer: logWriter,
-			},
-		},
+		Opt:    anping.NewOptions(),
+		State:  state.NewState(),
+		logger: &state.DefaultLogger{Writer: logWriter},
 	}
 }
 
@@ -40,32 +39,36 @@ func (t *TcpPinger) Run() {
 }
 
 func (t *TcpPinger) RunContext(ctx context.Context) {
-	t.logger.OnStart(t.Options)
+	if t.logger != nil {
+		t.logger.OnStart(t.Opt.Address())
+	}
 
-	for i := t.Number(); i != 0; i-- {
+	for i := t.Opt.Count; i != 0; i-- {
 		select {
 		case <-ctx.Done():
 			return
 		default:
 		}
 
-		latency, err := Ping(t.Address(), time.Millisecond*time.Duration(t.Timeout()))
+		latency, err := Ping(t.Opt.Address(), time.Millisecond*time.Duration(t.Opt.Timeout))
 		t.Add(int(latency.Milliseconds()), err == nil)
-		if err != nil {
-			t.logger.OnLost(t.Options, err.Error())
-			time.Sleep(t.Interval())
-			continue
+		if !t.Opt.Quite && t.logger != nil {
+			if err != nil {
+				t.logger.OnLost(t.Opt.Address(), err.Error())
+			} else {
+				t.logger.OnRecv(t.Opt.Address(), int(latency.Milliseconds()))
+			}
 		}
-
-		t.logger.OnRecv(t.Options, int(latency.Milliseconds()))
-		time.Sleep(t.Interval())
+		time.Sleep(t.Opt.Interval)
 	}
 }
 
 func (t *TcpPinger) Clean() error {
-	t.Options.PrintedLogOnce.Do(
+	t.State.FinishOnce.Do(
 		func() {
-			t.logger.OnFinish(t.Options)
+			if t.logger != nil {
+				t.logger.OnFinish(t.Opt.Address(), t.Probed(), t.Lost(), t.Succeed(), t.Min(), t.Max(), t.Avg(), t.Mdev())
+			}
 		},
 	)
 	return nil
@@ -75,8 +78,8 @@ func (t *TcpPinger) Protocol() string {
 	return Protocol
 }
 
-func (t *TcpPinger) SetLogger(logger anping.Logger) {
-	t.logger = anping.LoggerNotNil{L: logger}
+func (t *TcpPinger) SetLogger(logger state.Logger) {
+	t.logger = logger
 }
 
 func (t *TcpPinger) SetAddress(address string) error {
@@ -86,16 +89,18 @@ func (t *TcpPinger) SetAddress(address string) error {
 	}
 
 	if M.IsDomainName(domain) {
-		ip, err := anping.LookupSingleIP(domain, t.DomainStrategy())
+		ip, err := anping.LookupSingleIP(domain, t.Opt.DomainStrategy)
 		if err != nil {
 			return err
 		}
-		_ = t.Options.SetAddress(net.JoinHostPort(ip.String(), port))
-		return nil
+		return t.Opt.SetAddress(net.JoinHostPort(ip.String(), port))
 	}
 
-	_ = t.Options.SetAddress(address)
-	return nil
+	return t.Opt.SetAddress(address)
+}
+
+func (t *TcpPinger) Options() *anping.Options {
+	return t.Opt
 }
 
 func Ping(address string, timeout time.Duration) (time.Duration, error) {

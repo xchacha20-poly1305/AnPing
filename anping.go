@@ -3,7 +3,8 @@ package anping
 import (
 	"context"
 	"io"
-	"time"
+
+	"github.com/xchacha20-poly1305/anping/state"
 )
 
 type InitPinger func(logWriter io.Writer) AnPinger
@@ -26,32 +27,10 @@ type AnPinger interface {
 	// Protocol returns the protocol of AnPinger.
 	Protocol() string
 
-	SetLogger(logger Logger)
-
-	// Address returns the target address.
-	Address() string
-
-	// SetAddress sets the target address.
+	// SetAddress set the address of pinger. Use it instead of set it in options.
 	SetAddress(address string) error
 
-	// Number returns the number of runs.
-	Number() int
+	SetLogger(logger state.Logger)
 
-	// SetNumber sets the number of runs.
-	// If number <= 0, AnPinger will run forever.
-	SetNumber(number int)
-
-	Timeout() int32
-
-	SetTimeout(timeout int32)
-
-	Interval() time.Duration
-	SetInterval(i time.Duration)
-
-	// Quite returns true if enabled quite mode.
-	Quite() bool
-	SetQuite(yes bool)
-
-	DomainStrategy() DomainStrategy
-	SetDomainStrategy(d DomainStrategy)
+	Options() *Options
 }

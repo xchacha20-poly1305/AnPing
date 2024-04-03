@@ -6,9 +6,9 @@ import (
 	"net"
 	"time"
 
-	E "github.com/sagernet/sing/common/exceptions"
 	M "github.com/sagernet/sing/common/metadata"
 	"github.com/xchacha20-poly1305/anping"
+	"github.com/xchacha20-poly1305/anping/state"
 	"github.com/xchacha20-poly1305/libping"
 )
 
@@ -21,19 +21,17 @@ func init() {
 }
 
 type IcmpPinger struct {
-	*anping.Options
+	Opt *anping.Options
+	*state.State
 
-	logger anping.LoggerNotNil
+	logger state.Logger
 }
 
 func New(logWriter io.Writer) anping.AnPinger {
 	return &IcmpPinger{
-		Options: anping.NewOptions(),
-		logger: anping.LoggerNotNil{
-			L: &anping.DefaultLogger{
-				Writer: logWriter,
-			},
-		},
+		Opt:    anping.NewOptions(),
+		State:  state.NewState(),
+		logger: &state.DefaultLogger{Writer: logWriter},
 	}
 }
 
@@ -42,31 +40,36 @@ func (i *IcmpPinger) Run() {
 }
 
 func (i *IcmpPinger) RunContext(ctx context.Context) {
-	i.logger.OnStart(i.Options)
-	for j := i.Number(); j != 0; j-- {
+	if i.logger != nil {
+		i.logger.OnStart(i.Opt.Address())
+	}
+
+	for j := i.Opt.Count; j != 0; j-- {
 		select {
 		case <-ctx.Done():
 			return
 		default:
 		}
 
-		t, err := libping.IcmpPing(i.Address(), i.Timeout())
+		t, err := libping.IcmpPing(i.Opt.Address(), i.Opt.Timeout)
 		i.Add(int(t), err == nil)
-		if err != nil {
-			i.logger.OnLost(i.Options, err.Error())
-			time.Sleep(i.Interval())
-			continue
+		if !i.Opt.Quite && i.logger != nil {
+			if err != nil {
+				i.logger.OnLost(i.Opt.Address(), err.Error())
+			} else {
+				i.logger.OnRecv(i.Opt.Address(), int(t))
+			}
 		}
-
-		i.logger.OnRecv(i.Options, int(t))
-		time.Sleep(i.Interval())
+		time.Sleep(i.Opt.Interval)
 	}
 }
 
 func (i *IcmpPinger) Clean() error {
-	i.Options.PrintedLogOnce.Do(
+	i.State.FinishOnce.Do(
 		func() {
-			i.logger.OnFinish(i.Options)
+			if i.logger != nil {
+				i.logger.OnFinish(i.Opt.Address(), i.Probed(), i.Lost(), i.Succeed(), i.Min(), i.Max(), i.Avg(), i.Mdev())
+			}
 		},
 	)
 	return nil
@@ -76,25 +79,27 @@ func (i *IcmpPinger) Protocol() string {
 	return Protocol
 }
 
-func (i *IcmpPinger) SetLogger(logger anping.Logger) {
-	i.logger = anping.LoggerNotNil{L: logger}
+func (i *IcmpPinger) SetLogger(logger state.Logger) {
+	i.logger = logger
 }
 
 func (i *IcmpPinger) SetAddress(address string) error {
-	domain, _, err := net.SplitHostPort(address)
-	if err == nil {
-		return E.New("ICMP shouldn't has port")
+	host, _, err := net.SplitHostPort(address)
+	if err != nil {
+		host = address
 	}
 
-	if M.IsDomainName(domain) {
-		ip, err := anping.LookupSingleIP(domain, i.DomainStrategy())
+	if M.IsDomainName(host) {
+		ip, err := anping.LookupSingleIP(host, i.Opt.DomainStrategy)
 		if err != nil {
 			return err
 		}
-		_ = i.Options.SetAddress(ip.String())
-		return nil
+		return i.Opt.SetAddress(ip.String())
 	}
 
-	_ = i.Options.SetAddress(address)
-	return nil
+	return i.Opt.SetAddress(host)
+}
+
+func (i *IcmpPinger) Options() *anping.Options {
+	return i.Opt
 }
