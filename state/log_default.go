@@ -9,7 +9,7 @@ import (
 var _ Logger = (*DefaultLogger)(nil)
 
 type DefaultLogger struct {
-	Writer io.Writer
+	io.Writer
 }
 
 func (d *DefaultLogger) OnStart(address string) {

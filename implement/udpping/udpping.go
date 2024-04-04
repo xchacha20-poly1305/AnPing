@@ -53,6 +53,9 @@ func (u *UdpPinger) RunContext(ctx context.Context) {
 
 	addr, err := net.ResolveUDPAddr("udp", u.Opt.Address())
 	if err != nil {
+		if writer, isWriter := u.logger.(io.Writer); isWriter {
+			_, _ = io.WriteString(writer, err.Error())
+		}
 		return
 	}
 
@@ -118,7 +121,6 @@ func (u *UdpPinger) Options() *anping.Options {
 }
 
 func Ping(addr net.Addr, timeout time.Duration, payload []byte) (time.Duration, error) {
-
 	udpConn, err := net.ListenUDP("udp", nil)
 	if err != nil {
 		return -1, err
