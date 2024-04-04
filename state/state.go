@@ -28,27 +28,26 @@ func NewState() *State {
 	return opts
 }
 
-func (s *State) Add(t int, success bool) {
+func (s *State) Add(t uint64, success bool) {
 	s.probed.Add(1)
 	if !success {
 		s.lost.Add(1)
 		return
 	}
 
-	uintTime := uint64(t)
 	s.succeed.Add(1)
-	if s.min.Load() > uintTime {
-		s.min.Store(uintTime)
+	if s.min.Load() > t {
+		s.min.Store(t)
 	}
-	if s.max.Load() < uintTime {
-		s.max.Store(uintTime)
+	if s.max.Load() < t {
+		s.max.Store(t)
 	}
 
 	avg := s.avg.Load()
 	if avg == 0 {
-		s.avg.Store(uintTime)
+		s.avg.Store(t)
 	} else {
-		s.avg.Store((avg + uintTime) / 2)
+		s.avg.Store((avg + t) / 2)
 	}
 
 	adev := s.mdev.Load()

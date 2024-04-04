@@ -47,8 +47,8 @@ func (t *TcpPinger) RunContext(ctx context.Context) {
 		default:
 		}
 
-		latency, err := Ping(t.Opt.Address(), time.Millisecond*time.Duration(t.Opt.Timeout))
-		t.Add(int(latency.Milliseconds()), err == nil)
+		latency, err := Ping(t.Opt.Address(), t.Opt.Timeout)
+		t.Add(uint64(latency.Milliseconds()), err == nil)
 		if !t.Opt.Quite {
 			if err != nil {
 				t.OnLost(err)

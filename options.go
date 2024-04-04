@@ -6,7 +6,7 @@ import (
 
 const (
 	Count         = -1
-	Timeout       = 3000
+	Timeout       = 3000 * time.Millisecond
 	Interval      = time.Second
 	Port          = "443"
 	PayloadLength = 20
@@ -15,7 +15,7 @@ const (
 type Options struct {
 	Count          int
 	address        string
-	Timeout        int32
+	Timeout        time.Duration
 	Interval       time.Duration
 	Quite          bool
 	DomainStrategy DomainStrategy
@@ -23,9 +23,11 @@ type Options struct {
 
 func NewOptions() *Options {
 	return &Options{
-		Count:    Count,
-		Interval: Interval,
-		Timeout:  Timeout,
+		Count:          Count,
+		Interval:       Interval,
+		Timeout:        Timeout,
+		Quite:          false,
+		DomainStrategy: PreferNone,
 	}
 }
 

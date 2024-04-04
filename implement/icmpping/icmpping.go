@@ -54,8 +54,8 @@ func (i *IcmpPinger) RunContext(ctx context.Context) {
 		payload := make([]byte, i.PayloadLength)
 		_, _ = rand.Read(payload)
 
-		t, err := libping.IcmpPing(i.Opt.Address(), time.Duration(i.Opt.Timeout), payload)
-		i.Add(int(t), err == nil)
+		t, err := libping.IcmpPing(i.Opt.Address(), i.Opt.Timeout, payload)
+		i.Add(uint64(t.Milliseconds()), err == nil)
 		if !i.Opt.Quite {
 			if err != nil {
 				i.OnLost(err)

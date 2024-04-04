@@ -24,7 +24,7 @@ var (
 	interval time.Duration
 	quite    bool
 	count    int
-	timeout  int
+	timeout  time.Duration
 
 	prefer6        bool
 	prefer4        bool
@@ -37,7 +37,7 @@ func init() {
 	flag.DurationVar(&interval, "i", anping.Interval, "Ping interval")
 	flag.BoolVar(&quite, "q", false, "Quite mode")
 	flag.IntVar(&count, "c", anping.Count, "Ping count")
-	flag.IntVar(&timeout, "W", anping.Timeout, "Ping timeout")
+	flag.DurationVar(&timeout, "W", anping.Timeout, "Ping timeout")
 
 	flag.BoolVar(&prefer6, "6", false, "Prefer to IPv6")
 	flag.BoolVar(&prefer4, "4", false, "Prefer to IPv4")
@@ -88,7 +88,7 @@ func main() {
 
 	opts := pinger.Options()
 	opts.Count = count
-	opts.Timeout = int32(timeout)
+	opts.Timeout = timeout
 	opts.Interval = interval
 	opts.Quite = quite
 	opts.DomainStrategy = domainStrategy
