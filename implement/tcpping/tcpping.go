@@ -42,6 +42,12 @@ func (t *TcpPinger) RunContext(ctx context.Context) {
 		t.logger.OnStart(t.Opt.Address())
 	}
 
+	defer func() {
+		if t.logger != nil {
+			t.logger.OnFinish(t.Opt.Address(), t.Probed(), t.Lost(), t.Succeed(), t.Min(), t.Max(), t.Avg(), t.Mdev())
+		}
+	}()
+
 	for i := t.Opt.Count; i != 0; i-- {
 		select {
 		case <-ctx.Done():
@@ -60,17 +66,6 @@ func (t *TcpPinger) RunContext(ctx context.Context) {
 		}
 		time.Sleep(t.Opt.Interval)
 	}
-}
-
-func (t *TcpPinger) Clean() error {
-	t.State.FinishOnce.Do(
-		func() {
-			if t.logger != nil {
-				t.logger.OnFinish(t.Opt.Address(), t.Probed(), t.Lost(), t.Succeed(), t.Min(), t.Max(), t.Avg(), t.Mdev())
-			}
-		},
-	)
-	return nil
 }
 
 func (t *TcpPinger) Protocol() string {

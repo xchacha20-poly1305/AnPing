@@ -21,9 +21,6 @@ type AnPinger interface {
 	// RunContext runs AnPinger with context. It will block the thread.
 	RunContext(ctx context.Context)
 
-	// Clean used to do some chores when finished. Such as print log.
-	Clean() error
-
 	// Protocol returns the protocol of AnPinger.
 	Protocol() string
 

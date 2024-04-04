@@ -44,6 +44,12 @@ func (i *IcmpPinger) RunContext(ctx context.Context) {
 		i.logger.OnStart(i.Opt.Address())
 	}
 
+	defer func() {
+		if i.logger != nil {
+			i.logger.OnFinish(i.Opt.Address(), i.Probed(), i.Lost(), i.Succeed(), i.Min(), i.Avg(), i.Max(), i.Mdev())
+		}
+	}()
+
 	for j := i.Opt.Count; j != 0; j-- {
 		select {
 		case <-ctx.Done():
@@ -62,17 +68,6 @@ func (i *IcmpPinger) RunContext(ctx context.Context) {
 		}
 		time.Sleep(i.Opt.Interval)
 	}
-}
-
-func (i *IcmpPinger) Clean() error {
-	i.State.FinishOnce.Do(
-		func() {
-			if i.logger != nil {
-				i.logger.OnFinish(i.Opt.Address(), i.Probed(), i.Lost(), i.Succeed(), i.Min(), i.Max(), i.Avg(), i.Mdev())
-			}
-		},
-	)
-	return nil
 }
 
 func (i *IcmpPinger) Protocol() string {

@@ -105,7 +105,9 @@ func main() {
 	}()
 	<-osSignals
 	cancel()
-	_ = pinger.Clean()
+
+	// Wait for finish print.
+	time.Sleep(interval)
 }
 
 func printVersion() {

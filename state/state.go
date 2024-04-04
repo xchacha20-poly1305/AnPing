@@ -2,14 +2,11 @@ package state
 
 import (
 	"math"
-	"sync"
 
 	"github.com/sagernet/sing/common/atomic"
 )
 
 type State struct {
-	FinishOnce sync.Once
-
 	// probed is the time that probed.
 	probed atomic.Uint64
 	// succeed is the time that probing succeed.

@@ -59,6 +59,12 @@ func (u *UdpPinger) RunContext(ctx context.Context) {
 		return
 	}
 
+	defer func() {
+		if u.logger != nil {
+			u.logger.OnFinish(u.Opt.Address(), u.Probed(), u.Lost(), u.Succeed(), u.Min(), u.Max(), u.Avg(), u.Mdev())
+		}
+	}()
+
 	for i := u.Opt.Count; i != 0; i-- {
 		select {
 		case <-ctx.Done():
@@ -77,17 +83,6 @@ func (u *UdpPinger) RunContext(ctx context.Context) {
 		}
 		time.Sleep(u.Opt.Interval)
 	}
-}
-
-func (u *UdpPinger) Clean() error {
-	u.State.FinishOnce.Do(
-		func() {
-			if u.logger != nil {
-				u.logger.OnFinish(u.Opt.Address(), u.Probed(), u.Lost(), u.Succeed(), u.Min(), u.Max(), u.Avg(), u.Mdev())
-			}
-		},
-	)
-	return nil
 }
 
 func (u *UdpPinger) Protocol() string {
