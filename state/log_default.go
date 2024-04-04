@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"time"
 )
 
 var _ Logger = (*DefaultLogger)(nil)
@@ -21,12 +22,12 @@ func (d *DefaultLogger) OnStart(address string) {
 	_, _ = fmt.Fprintf(d.Writer, fmt.Sprintf("PING %s:\n", address))
 }
 
-func (d *DefaultLogger) OnRecv(address string, t int) {
+func (d *DefaultLogger) OnRecv(address string, t time.Duration) {
 	if d.Writer == nil {
 		return
 	}
 
-	_, _ = fmt.Fprintf(d.Writer, fmt.Sprintf("From %s: time=%d ms\n", address, t))
+	_, _ = fmt.Fprintf(d.Writer, fmt.Sprintf("From %s: time=%d ms\n", address, t.Milliseconds()))
 }
 
 func (d *DefaultLogger) OnLost(address, errMessage string) {

@@ -9,6 +9,7 @@ import (
 	M "github.com/sagernet/sing/common/metadata"
 	N "github.com/sagernet/sing/common/network"
 	"github.com/xchacha20-poly1305/anping"
+	"github.com/xchacha20-poly1305/anping/implement"
 	"github.com/xchacha20-poly1305/anping/state"
 )
 
@@ -19,34 +20,25 @@ func init() {
 }
 
 type TcpPinger struct {
-	Opt *anping.Options
-	*state.State
-
-	logger state.Logger
+	implement.AnPingerWrapper
 }
 
 func New(logWriter io.Writer) anping.AnPinger {
-	return &TcpPinger{
-		Opt:    anping.NewOptions(),
-		State:  state.NewState(),
-		logger: &state.DefaultLogger{Writer: logWriter},
+	t := &TcpPinger{
+		AnPingerWrapper: implement.AnPingerWrapper{
+			Opt:   anping.NewOptions(),
+			State: state.NewState(),
+		},
 	}
-}
+	t.SetLogger(&state.DefaultLogger{Writer: logWriter})
 
-func (t *TcpPinger) Run() {
-	t.RunContext(context.Background())
+	return t
 }
 
 func (t *TcpPinger) RunContext(ctx context.Context) {
-	if t.logger != nil {
-		t.logger.OnStart(t.Opt.Address())
-	}
+	t.OnStart()
 
-	defer func() {
-		if t.logger != nil {
-			t.logger.OnFinish(t.Opt.Address(), t.Probed(), t.Lost(), t.Succeed(), t.Min(), t.Max(), t.Avg(), t.Mdev())
-		}
-	}()
+	defer t.OnFinish()
 
 	for i := t.Opt.Count; i != 0; i-- {
 		select {
@@ -57,11 +49,11 @@ func (t *TcpPinger) RunContext(ctx context.Context) {
 
 		latency, err := Ping(t.Opt.Address(), time.Millisecond*time.Duration(t.Opt.Timeout))
 		t.Add(int(latency.Milliseconds()), err == nil)
-		if !t.Opt.Quite && t.logger != nil {
+		if !t.Opt.Quite {
 			if err != nil {
-				t.logger.OnLost(t.Opt.Address(), err.Error())
+				t.OnLost(err)
 			} else {
-				t.logger.OnRecv(t.Opt.Address(), int(latency.Milliseconds()))
+				t.OnRecv(latency)
 			}
 		}
 		time.Sleep(t.Opt.Interval)
@@ -70,10 +62,6 @@ func (t *TcpPinger) RunContext(ctx context.Context) {
 
 func (t *TcpPinger) Protocol() string {
 	return Protocol
-}
-
-func (t *TcpPinger) SetLogger(logger state.Logger) {
-	t.logger = logger
 }
 
 func (t *TcpPinger) SetAddress(address string) error {
@@ -92,10 +80,6 @@ func (t *TcpPinger) SetAddress(address string) error {
 	}
 
 	return t.Opt.SetAddress(address)
-}
-
-func (t *TcpPinger) Options() *anping.Options {
-	return t.Opt
 }
 
 func Ping(address string, timeout time.Duration) (time.Duration, error) {
