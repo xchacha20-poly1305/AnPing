@@ -89,6 +89,10 @@ func Ping(address string, timeout time.Duration) (time.Duration, error) {
 	if err != nil {
 		return -1, err
 	}
-	defer conn.Close()
+	defer func() {
+		_ = conn.Close()
+		conn = nil
+	}()
+
 	return time.Since(start), nil
 }

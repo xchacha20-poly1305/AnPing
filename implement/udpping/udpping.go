@@ -104,7 +104,10 @@ func Ping(addr net.Addr, timeout time.Duration, payload []byte) (time.Duration, 
 	if err != nil {
 		return -1, err
 	}
-	defer udpConn.Close()
+	defer func() {
+		_ = udpConn.Close()
+		udpConn = nil
+	}()
 
 	start := time.Now()
 	_, err = udpConn.WriteTo(payload, addr)
