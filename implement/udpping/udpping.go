@@ -55,7 +55,7 @@ func (u *UdpPinger) RunContext(ctx context.Context) {
 		return
 	}
 
-	defer u.OnFinish()
+	go implement.ListenOnDone(ctx.Done(), u.OnFinish)
 
 	for i := u.Opt.Count; i != 0; i-- {
 		select {

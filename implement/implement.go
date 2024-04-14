@@ -38,7 +38,7 @@ func (a *AnPingerWrapper) Run() {
 func (a *AnPingerWrapper) RunContext(ctx context.Context) {
 	a.OnStart()
 
-	defer a.OnFinish()
+	go ListenOnDone(ctx.Done(), a.OnFinish)
 
 	for i := a.Opt.Count; i != 0; i-- {
 		select {
@@ -66,6 +66,7 @@ func (a *AnPingerWrapper) SetLogger(logger state.Logger) {
 func (a *AnPingerWrapper) Options() *anping.Options {
 	return a.Opt
 }
+
 func (a *AnPingerWrapper) OnStart() {
 	if a.logger != nil {
 		a.logger.OnStart(a.Opt.Address(), a.State)

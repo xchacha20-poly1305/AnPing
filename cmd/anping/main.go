@@ -107,7 +107,7 @@ func main() {
 	cancel()
 
 	// Wait for finish print.
-	time.Sleep(interval)
+	time.Sleep(300 * time.Millisecond)
 }
 
 func printVersion() {
