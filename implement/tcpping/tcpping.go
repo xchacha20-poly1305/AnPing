@@ -38,7 +38,7 @@ func New(logWriter io.Writer) anping.AnPinger {
 func (t *TcpPinger) RunContext(ctx context.Context) {
 	t.OnStart()
 
-	go implement.ListenOnDone(ctx.Done(), t.OnFinish)
+	go context.AfterFunc(ctx, t.OnFinish)
 
 	for i := t.Opt.Count; i != 0; i-- {
 		select {

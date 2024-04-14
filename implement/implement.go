@@ -38,7 +38,7 @@ func (a *AnPingerWrapper) Run() {
 func (a *AnPingerWrapper) RunContext(ctx context.Context) {
 	a.OnStart()
 
-	go ListenOnDone(ctx.Done(), a.OnFinish)
+	go context.AfterFunc(ctx, a.OnFinish)
 
 	for i := a.Opt.Count; i != 0; i-- {
 		select {

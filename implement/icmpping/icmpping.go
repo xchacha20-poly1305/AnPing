@@ -42,7 +42,7 @@ func New(logWriter io.Writer) anping.AnPinger {
 func (i *IcmpPinger) RunContext(ctx context.Context) {
 	i.OnStart()
 
-	go implement.ListenOnDone(ctx.Done(), i.OnFinish)
+	go context.AfterFunc(ctx, i.OnFinish)
 
 	for j := i.Opt.Count; j != 0; j-- {
 		select {
