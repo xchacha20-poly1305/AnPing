@@ -5,8 +5,8 @@ import (
 )
 
 type Logger interface {
-	OnStart(address string)
-	OnRecv(address string, t time.Duration)
-	OnLost(address string, errMessage string)
-	OnFinish(address string, probed, lost, succeed, min, avg, max, mdev uint64)
+	OnStart(address string, state *State)
+	OnRecv(address string, state *State, t time.Duration)
+	OnLost(address string, state *State, errMessage string)
+	OnFinish(address string, state *State)
 }

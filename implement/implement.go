@@ -68,24 +68,24 @@ func (a *AnPingerWrapper) Options() *anping.Options {
 }
 func (a *AnPingerWrapper) OnStart() {
 	if a.logger != nil {
-		a.logger.OnStart(a.Opt.Address())
+		a.logger.OnStart(a.Opt.Address(), a.State)
 	}
 }
 
 func (a *AnPingerWrapper) OnRecv(t time.Duration) {
 	if a.logger != nil {
-		a.logger.OnRecv(a.Opt.Address(), t)
+		a.logger.OnRecv(a.Opt.Address(), a.State, t)
 	}
 }
 
 func (a *AnPingerWrapper) OnLost(errMsg ...any) {
 	if a.logger != nil {
-		a.logger.OnLost(a.Opt.Address(), F.ToString(errMsg...))
+		a.logger.OnLost(a.Opt.Address(), a.State, F.ToString(errMsg...))
 	}
 }
 
 func (a *AnPingerWrapper) OnFinish() {
 	if a.logger != nil {
-		a.logger.OnFinish(a.Opt.Address(), a.Probed(), a.Lost(), a.Succeed(), a.Min(), a.Avg(), a.Max(), a.Mdev())
+		a.logger.OnFinish(a.Opt.Address(), a.State)
 	}
 }

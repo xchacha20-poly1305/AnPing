@@ -13,7 +13,7 @@ type DefaultLogger struct {
 	io.Writer
 }
 
-func (d *DefaultLogger) OnStart(address string) {
+func (d *DefaultLogger) OnStart(address string, state *State) {
 	if d.Writer == nil {
 		return
 	}
@@ -22,7 +22,7 @@ func (d *DefaultLogger) OnStart(address string) {
 	_, _ = fmt.Fprintf(d.Writer, fmt.Sprintf("PING %s:\n", address))
 }
 
-func (d *DefaultLogger) OnRecv(address string, t time.Duration) {
+func (d *DefaultLogger) OnRecv(address string, state *State, t time.Duration) {
 	if d.Writer == nil {
 		return
 	}
@@ -30,7 +30,7 @@ func (d *DefaultLogger) OnRecv(address string, t time.Duration) {
 	_, _ = fmt.Fprintf(d.Writer, fmt.Sprintf("From %s: time=%d ms\n", address, t.Milliseconds()))
 }
 
-func (d *DefaultLogger) OnLost(address, errMessage string) {
+func (d *DefaultLogger) OnLost(address string, state *State, errMessage string) {
 	if d.Writer == nil {
 		return
 	}
@@ -38,24 +38,20 @@ func (d *DefaultLogger) OnLost(address, errMessage string) {
 	_, _ = fmt.Fprintf(d.Writer, "Failed to ping %s: %s\n", address, errMessage)
 }
 
-func (d *DefaultLogger) OnFinish(address string, probed, lost, succeed, min, avg, max, mdev uint64) {
+func (d *DefaultLogger) OnFinish(address string, state *State) {
 	if d.Writer == nil {
 		return
 	}
 
 	var b strings.Builder
 
-	_, _ = b.WriteString(fmt.Sprintf("\n--- %s ping statistics ---\n", address))
+	_, _ = fmt.Fprintf(&b, "\n--- %s ping statistics ---\n", address)
 
-	_, _ = b.WriteString(
-		fmt.Sprintf("%d packets transmitted, %d packets received, %s packet loss\n",
-			probed, succeed, percent(lost, probed)),
-	)
+	_, _ = fmt.Fprintf(&b, "%d packets transmitted, %d packets received, %s packet loss\n",
+		state.Probed(), state.Succeed(), percent(state.Lost(), state.Probed()))
 
-	_, _ = b.WriteString(
-		fmt.Sprintf("round-trip min/avg/max/stddev = %d/%d/%d/%d ms\n",
-			min, avg, max, mdev),
-	)
+	_, _ = fmt.Fprintf(&b, "round-trip min/avg/max/stddev = %d/%d/%d/%d ms\n",
+		state.Min(), state.Avg(), state.Max(), state.Mdev())
 
 	_, _ = io.WriteString(d.Writer, b.String())
 }
