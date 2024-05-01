@@ -14,12 +14,8 @@ var AnPingerCreator = map[string]InitPinger{}
 // AnPinger is an abstract interface to ping.
 // You can absorb it by canal context.
 type AnPinger interface {
-	// Run runs AnPinger.
-	// If you want to control to stop it, please use RunContext.
-	Run()
-
-	// RunContext runs AnPinger with context. It will block the thread.
-	RunContext(ctx context.Context)
+	// Start starts AnPinger until context cancel or other reason.
+	Start(ctx context.Context) (done <-chan struct{})
 
 	// Protocol returns the protocol of AnPinger.
 	Protocol() string

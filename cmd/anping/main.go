@@ -85,7 +85,6 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-
 	opts := pinger.Options()
 	opts.Count = count
 	opts.Timeout = timeout
@@ -96,18 +95,14 @@ func main() {
 	osSignals := make(chan os.Signal, 1)
 	signal.Notify(osSignals, os.Interrupt, syscall.SIGTERM, syscall.SIGHUP)
 	ctx, cancel := context.WithCancel(context.Background())
-	go func() {
-		defer func() {
-			cancel()
-			close(osSignals)
-		}()
-		pinger.RunContext(ctx)
-	}()
-	<-osSignals
-	cancel()
+	done := pinger.Start(ctx)
 
-	// Wait for finish print.
-	time.Sleep(300 * time.Millisecond)
+	select {
+	case <-osSignals:
+	case <-done:
+	}
+	cancel()
+	<-done
 }
 
 func printVersion() {

@@ -11,7 +11,6 @@ import (
 	M "github.com/sagernet/sing/common/metadata"
 	"github.com/xchacha20-poly1305/anping"
 	"github.com/xchacha20-poly1305/anping/implement"
-	"github.com/xchacha20-poly1305/anping/state"
 )
 
 const Protocol = "udp"
@@ -23,26 +22,30 @@ func init() {
 var _ anping.AnPinger = (*UdpPinger)(nil)
 
 type UdpPinger struct {
-	implement.AnPingerWrapper
+	*implement.AnPingerWrapper
 
 	PayloadLength int
 }
 
 func New(logWriter io.Writer) anping.AnPinger {
 	u := &UdpPinger{
-		AnPingerWrapper: implement.AnPingerWrapper{
-			Opt:   anping.NewOptions(),
-			State: state.NewState(),
-		},
+		AnPingerWrapper: implement.New(logWriter).(*implement.AnPingerWrapper),
 
 		PayloadLength: anping.PayloadLength,
 	}
-	u.SetLogger(&state.DefaultLogger{Writer: logWriter})
 	return u
 }
 
-func (u *UdpPinger) RunContext(ctx context.Context) {
+func (u *UdpPinger) Start(ctx context.Context) <-chan struct{} {
+	done := make(chan struct{})
+	go u.start(ctx, done)
+	return done
+}
+
+func (u *UdpPinger) start(ctx context.Context, done chan struct{}) {
+	defer implement.TryCloseDone(done)
 	u.OnStart()
+	defer u.OnFinish()
 
 	payload := make([]byte, u.PayloadLength)
 	_, _ = rand.Read(payload)
@@ -55,13 +58,16 @@ func (u *UdpPinger) RunContext(ctx context.Context) {
 		return
 	}
 
-	go context.AfterFunc(ctx, u.OnFinish)
-
+	timer := time.NewTimer(u.Opt.Interval)
+	defer timer.Stop()
 	for i := u.Opt.Count; i != 0; i-- {
 		select {
 		case <-ctx.Done():
 			return
-		default:
+		case <-done:
+			return
+		case <-timer.C:
+			timer.Reset(u.Opt.Interval)
 		}
 
 		latency, err := Ping(addr, u.Opt.Timeout, payload)
@@ -73,7 +79,6 @@ func (u *UdpPinger) RunContext(ctx context.Context) {
 				u.OnRecv(latency)
 			}
 		}
-		time.Sleep(u.Opt.Interval)
 	}
 }
 

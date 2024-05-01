@@ -20,33 +20,40 @@ func init() {
 }
 
 type TcpPinger struct {
-	implement.AnPingerWrapper
+	*implement.AnPingerWrapper
 }
 
 func New(logWriter io.Writer) anping.AnPinger {
 	t := &TcpPinger{
-		AnPingerWrapper: implement.AnPingerWrapper{
-			Opt:   anping.NewOptions(),
-			State: state.NewState(),
-		},
+		AnPingerWrapper: implement.New(logWriter).(*implement.AnPingerWrapper),
 	}
 	t.SetLogger(&state.DefaultLogger{Writer: logWriter})
 
 	return t
 }
 
-func (t *TcpPinger) RunContext(ctx context.Context) {
-	t.OnStart()
+func (t *TcpPinger) Start(ctx context.Context) <-chan struct{} {
+	done := make(chan struct{})
+	go t.start(ctx, done)
+	return done
+}
 
-	go context.AfterFunc(ctx, t.OnFinish)
+func (t *TcpPinger) start(ctx context.Context, done chan struct{}) {
+	defer implement.TryCloseDone(done)
+	t.OnStart()
+	defer t.OnFinish()
 
 	host, port, _ := net.SplitHostPort(t.Opt.Address())
 
+	timer := time.NewTimer(t.Opt.Interval)
 	for i := t.Opt.Count; i != 0; i-- {
 		select {
 		case <-ctx.Done():
 			return
-		default:
+		case <-done:
+			return
+		case <-timer.C:
+			timer.Reset(t.Opt.Interval)
 		}
 
 		latency, err := libping.TcpPing(host, port, t.Opt.Timeout)
@@ -58,7 +65,6 @@ func (t *TcpPinger) RunContext(ctx context.Context) {
 				t.OnRecv(latency)
 			}
 		}
-		time.Sleep(t.Opt.Interval)
 	}
 }
 

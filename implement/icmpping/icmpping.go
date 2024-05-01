@@ -23,32 +23,39 @@ func init() {
 }
 
 type IcmpPinger struct {
-	implement.AnPingerWrapper
+	*implement.AnPingerWrapper
 	PayloadLength int
 }
 
 func New(logWriter io.Writer) anping.AnPinger {
 	i := &IcmpPinger{
-		AnPingerWrapper: implement.AnPingerWrapper{
-			Opt:   anping.NewOptions(),
-			State: state.NewState(),
-		},
-		PayloadLength: anping.PayloadLength,
+		AnPingerWrapper: implement.New(logWriter).(*implement.AnPingerWrapper),
+		PayloadLength:   anping.PayloadLength,
 	}
 	i.SetLogger(&state.DefaultLogger{Writer: logWriter})
 	return i
 }
 
-func (i *IcmpPinger) RunContext(ctx context.Context) {
+func (i *IcmpPinger) Start(ctx context.Context) <-chan struct{} {
+	done := make(chan struct{})
+	go i.start(ctx, done)
+	return done
+}
+
+func (i *IcmpPinger) start(ctx context.Context, done chan struct{}) {
+	defer implement.TryCloseDone(done)
 	i.OnStart()
+	defer i.OnFinish()
 
-	go context.AfterFunc(ctx, i.OnFinish)
-
+	timer := time.NewTimer(i.Opt.Interval)
 	for j := i.Opt.Count; j != 0; j-- {
 		select {
 		case <-ctx.Done():
 			return
-		default:
+		case <-done:
+			return
+		case <-timer.C:
+			timer.Reset(i.Opt.Interval)
 		}
 
 		payload := make([]byte, i.PayloadLength)
@@ -63,7 +70,6 @@ func (i *IcmpPinger) RunContext(ctx context.Context) {
 				i.OnRecv(t)
 			}
 		}
-		time.Sleep(i.Opt.Interval)
 	}
 }
 
