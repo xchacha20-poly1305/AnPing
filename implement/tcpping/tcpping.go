@@ -9,7 +9,7 @@ import (
 	M "github.com/sagernet/sing/common/metadata"
 	"github.com/xchacha20-poly1305/anping"
 	"github.com/xchacha20-poly1305/anping/implement"
-	"github.com/xchacha20-poly1305/anping/state"
+	"github.com/xchacha20-poly1305/anping/statistics"
 	"github.com/xchacha20-poly1305/libping"
 )
 
@@ -27,7 +27,7 @@ func New(logWriter io.Writer) anping.AnPinger {
 	t := &TcpPinger{
 		AnPingerWrapper: implement.New(logWriter).(*implement.AnPingerWrapper),
 	}
-	t.SetLogger(&state.DefaultLogger{Writer: logWriter})
+	t.SetLogger(&statistics.DefaultLogger{Writer: logWriter})
 
 	return t
 }
@@ -57,7 +57,7 @@ func (t *TcpPinger) start(ctx context.Context, done chan struct{}) {
 		}
 
 		latency, err := libping.TcpPing(host, port, t.Opt.Timeout)
-		t.Add(uint64(latency.Milliseconds()), err == nil)
+		t.Sta.Add(uint64(latency.Milliseconds()), err == nil)
 		if !t.Opt.Quite {
 			if err != nil {
 				t.OnLost(err)

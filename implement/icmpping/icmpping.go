@@ -10,7 +10,7 @@ import (
 	M "github.com/sagernet/sing/common/metadata"
 	"github.com/xchacha20-poly1305/anping"
 	"github.com/xchacha20-poly1305/anping/implement"
-	"github.com/xchacha20-poly1305/anping/state"
+	"github.com/xchacha20-poly1305/anping/statistics"
 	"github.com/xchacha20-poly1305/libping"
 )
 
@@ -32,7 +32,7 @@ func New(logWriter io.Writer) anping.AnPinger {
 		AnPingerWrapper: implement.New(logWriter).(*implement.AnPingerWrapper),
 		PayloadLength:   anping.PayloadLength,
 	}
-	i.SetLogger(&state.DefaultLogger{Writer: logWriter})
+	i.SetLogger(&statistics.DefaultLogger{Writer: logWriter})
 	return i
 }
 
@@ -62,7 +62,7 @@ func (i *IcmpPinger) start(ctx context.Context, done chan struct{}) {
 		_, _ = rand.Read(payload)
 
 		t, err := libping.IcmpPing(i.Opt.Address(), i.Opt.Timeout, payload)
-		i.Add(uint64(t.Milliseconds()), err == nil)
+		i.Sta.Add(uint64(t.Milliseconds()), err == nil)
 		if !i.Opt.Quite {
 			if err != nil {
 				i.OnLost(err)

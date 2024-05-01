@@ -4,7 +4,7 @@ import (
 	"context"
 	"io"
 
-	"github.com/xchacha20-poly1305/anping/state"
+	"github.com/xchacha20-poly1305/anping/statistics"
 )
 
 type InitPinger func(logWriter io.Writer) AnPinger
@@ -20,10 +20,15 @@ type AnPinger interface {
 	// Protocol returns the protocol of AnPinger.
 	Protocol() string
 
+	// Statistics provides read-time statistics of ping. It will refresh after use Start.
+	Statistics() statistics.StatisticsGetter
+
+	ResetStatistics()
+
 	// SetAddress set the address of pinger. Use it instead of set it in options.
 	SetAddress(address string) error
 
-	SetLogger(logger state.Logger)
+	SetLogger(logger statistics.Logger)
 
 	Options() *Options
 }

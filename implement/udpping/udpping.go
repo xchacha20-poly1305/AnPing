@@ -71,7 +71,7 @@ func (u *UdpPinger) start(ctx context.Context, done chan struct{}) {
 		}
 
 		latency, err := Ping(addr, u.Opt.Timeout, payload)
-		u.Add(uint64(latency.Milliseconds()), err == nil)
+		u.Sta.Add(uint64(latency.Milliseconds()), err == nil)
 		if !u.Opt.Quite {
 			if err != nil {
 				u.OnLost(err)

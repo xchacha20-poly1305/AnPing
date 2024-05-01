@@ -8,7 +8,7 @@ import (
 
 	F "github.com/sagernet/sing/common/format"
 	"github.com/xchacha20-poly1305/anping"
-	"github.com/xchacha20-poly1305/anping/state"
+	"github.com/xchacha20-poly1305/anping/statistics"
 )
 
 const Protocol = "Unknown"
@@ -18,16 +18,16 @@ var _ anping.AnPinger = (*AnPingerWrapper)(nil)
 // AnPingerWrapper is a simple wrapper of anping.AnPinger. It does nothing when running.
 type AnPingerWrapper struct {
 	Opt *anping.Options
-	*state.State
+	Sta *statistics.Statistics
 
-	logger state.Logger
+	logger statistics.Logger
 }
 
 func New(logWriter io.Writer) anping.AnPinger {
 	return &AnPingerWrapper{
 		Opt:    anping.NewOptions(),
-		State:  state.NewState(),
-		logger: &state.DefaultLogger{Writer: logWriter},
+		Sta:    statistics.NewStatistics(),
+		logger: &statistics.DefaultLogger{Writer: logWriter},
 	}
 }
 
@@ -60,11 +60,20 @@ func (a *AnPingerWrapper) Protocol() string {
 	return Protocol
 }
 
+func (a *AnPingerWrapper) Statistics() statistics.StatisticsGetter {
+	// Make user can't edit it.
+	return a.Sta.Getter()
+}
+
+func (a *AnPingerWrapper) ResetStatistics() {
+	a.Sta = statistics.NewStatistics()
+}
+
 func (a *AnPingerWrapper) SetAddress(address string) error {
 	return a.Opt.SetAddress(address)
 }
 
-func (a *AnPingerWrapper) SetLogger(logger state.Logger) {
+func (a *AnPingerWrapper) SetLogger(logger statistics.Logger) {
 	a.logger = logger
 }
 
@@ -74,25 +83,25 @@ func (a *AnPingerWrapper) Options() *anping.Options {
 
 func (a *AnPingerWrapper) OnStart() {
 	if a.logger != nil {
-		a.logger.OnStart(a.Opt.Address(), a.State)
+		a.logger.OnStart(a.Opt.Address(), a.Sta)
 	}
 }
 
 func (a *AnPingerWrapper) OnRecv(t time.Duration) {
 	if a.logger != nil {
-		a.logger.OnRecv(a.Opt.Address(), a.State, t)
+		a.logger.OnRecv(a.Opt.Address(), a.Sta, t)
 	}
 }
 
 func (a *AnPingerWrapper) OnLost(errMsg ...any) {
 	if a.logger != nil {
-		a.logger.OnLost(a.Opt.Address(), a.State, F.ToString(errMsg...))
+		a.logger.OnLost(a.Opt.Address(), a.Sta, F.ToString(errMsg...), -1)
 	}
 }
 
 func (a *AnPingerWrapper) OnFinish() {
 	if a.logger != nil {
-		a.logger.OnFinish(a.Opt.Address(), a.State)
+		a.logger.OnFinish(a.Opt.Address(), a.Sta)
 	}
 }
 
