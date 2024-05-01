@@ -7,10 +7,10 @@ import (
 	"time"
 
 	M "github.com/sagernet/sing/common/metadata"
-	N "github.com/sagernet/sing/common/network"
 	"github.com/xchacha20-poly1305/anping"
 	"github.com/xchacha20-poly1305/anping/implement"
 	"github.com/xchacha20-poly1305/anping/state"
+	"github.com/xchacha20-poly1305/libping"
 )
 
 const Protocol = "tcp"
@@ -40,6 +40,8 @@ func (t *TcpPinger) RunContext(ctx context.Context) {
 
 	go context.AfterFunc(ctx, t.OnFinish)
 
+	host, port, _ := net.SplitHostPort(t.Opt.Address())
+
 	for i := t.Opt.Count; i != 0; i-- {
 		select {
 		case <-ctx.Done():
@@ -47,7 +49,7 @@ func (t *TcpPinger) RunContext(ctx context.Context) {
 		default:
 		}
 
-		latency, err := Ping(t.Opt.Address(), t.Opt.Timeout)
+		latency, err := libping.TcpPing(host, port, t.Opt.Timeout)
 		t.Add(uint64(latency.Milliseconds()), err == nil)
 		if !t.Opt.Quite {
 			if err != nil {
@@ -80,19 +82,4 @@ func (t *TcpPinger) SetAddress(address string) error {
 	}
 
 	return t.Opt.SetAddress(address)
-}
-
-func Ping(address string, timeout time.Duration) (time.Duration, error) {
-	start := time.Now()
-
-	conn, err := net.DialTimeout(N.NetworkTCP, address, timeout)
-	if err != nil {
-		return -1, err
-	}
-	defer func() {
-		_ = conn.Close()
-		conn = nil
-	}()
-
-	return time.Since(start), nil
 }
