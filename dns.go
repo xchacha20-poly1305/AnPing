@@ -4,6 +4,7 @@ import (
 	"math/rand/v2"
 	"net"
 
+	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
 	M "github.com/sagernet/sing/common/metadata"
 )
@@ -25,40 +26,28 @@ func LookupSingleIP(address M.Socksaddr, prefer DomainStrategy) (ip net.IP, err 
 
 	switch prefer {
 	case PreferNone:
-		ip = ips[rand.IntN(len(ips))]
+		return ips[rand.IntN(len(ips))], nil
 	case PreferIpv6:
-		var ipv6s []net.IP
+		ipv6s := common.Filter(ips, func(it net.IP) bool {
+			return it.To4() == nil
+		})
 
-		for _, singleIP := range ips {
-			if ip.To4() == nil {
-				ipv6s = append(ipv6s, singleIP)
-			}
+		if len(ipv6s) == 0 {
+			return nil, E.New("not found IPv6 address of: ", address)
 		}
 
-		l := len(ipv6s)
-		if l == 0 {
-			return nil, E.New("not found IPv6 address of ", address.Fqdn)
-		}
-
-		ip = ipv6s[rand.IntN(l)]
+		return ipv6s[rand.IntN(len(ipv6s))], nil
 	case PreferIpv4:
-		var ipv4s []net.IP
+		ipv4s := common.Filter(ips, func(it net.IP) bool {
+			return it.To4() != nil
+		})
 
-		for _, singleIP := range ips {
-			if ip.To4() != nil {
-				ipv4s = append(ipv4s, singleIP)
-			}
+		if len(ipv4s) == 0 {
+			return nil, E.New("not found IPv4 address of: ", address.Fqdn)
 		}
 
-		l := len(ipv4s)
-		if l == 0 {
-			return nil, E.New("not found IPv4 address of ", address.Fqdn)
-		}
-
-		ip = ipv4s[rand.IntN(l)]
+		return ipv4s[rand.IntN(len(ipv4s))], nil
 	default:
 		return nil, E.New("invalid domain strategy: ", prefer)
 	}
-
-	return
 }

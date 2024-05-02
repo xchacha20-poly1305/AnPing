@@ -82,16 +82,16 @@ func main() {
 	}
 
 	pinger := creator(os.Stdout)
-	err := pinger.SetAddress(M.ParseSocksaddr(args[1]))
-	if err != nil {
-		log.Fatalln(err)
-	}
 	opts := pinger.Options()
 	opts.Count = count
 	opts.Timeout = timeout
 	opts.Interval = interval
 	opts.Quite = quite
 	opts.DomainStrategy = domainStrategy
+	err := pinger.SetAddress(M.ParseSocksaddr(args[1]))
+	if err != nil {
+		log.Fatalln(err)
+	}
 
 	osSignals := make(chan os.Signal, 1)
 	signal.Notify(osSignals, os.Interrupt, syscall.SIGTERM, syscall.SIGHUP)
