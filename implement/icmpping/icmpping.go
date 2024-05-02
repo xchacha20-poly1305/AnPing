@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/rand"
 	"io"
-	"net"
 	"time"
 
 	M "github.com/sagernet/sing/common/metadata"
@@ -61,7 +60,7 @@ func (i *IcmpPinger) start(ctx context.Context, done chan struct{}) {
 		payload := make([]byte, i.PayloadLength)
 		_, _ = rand.Read(payload)
 
-		t, err := libping.IcmpPing(i.Opt.Address(), i.Opt.Timeout, payload)
+		t, err := libping.IcmpPing(i.Opt.Address().AddrString(), i.Opt.Timeout, payload)
 		i.Sta.Add(uint64(t.Milliseconds()), err == nil)
 		if !i.Opt.Quite {
 			if err != nil {
@@ -77,19 +76,14 @@ func (i *IcmpPinger) Protocol() string {
 	return Protocol
 }
 
-func (i *IcmpPinger) SetAddress(address string) error {
-	host, _, err := net.SplitHostPort(address)
-	if err != nil {
-		host = address
-	}
-
-	if M.IsDomainName(host) {
-		ip, err := anping.LookupSingleIP(host, i.Opt.DomainStrategy)
+func (i *IcmpPinger) SetAddress(address M.Socksaddr) error {
+	if !address.IsIP() {
+		ip, err := anping.LookupSingleIP(address, i.Opt.DomainStrategy)
 		if err != nil {
 			return err
 		}
-		return i.Opt.SetAddress(ip.String())
+		return i.Opt.SetAddress(M.ParseSocksaddrHostPort(ip.String(), address.Port))
 	}
 
-	return i.Opt.SetAddress(host)
+	return i.Opt.SetAddress(address)
 }

@@ -50,14 +50,6 @@ func (u *UdpPinger) start(ctx context.Context, done chan struct{}) {
 	payload := make([]byte, u.PayloadLength)
 	_, _ = rand.Read(payload)
 
-	addr, err := net.ResolveUDPAddr("udp", u.Opt.Address())
-	if err != nil {
-		/*if writer, isWriter := u.logger.(io.Writer); isWriter {
-			_, _ = io.WriteString(writer, err.Error())
-		}*/
-		return
-	}
-
 	timer := time.NewTimer(u.Opt.Interval)
 	defer timer.Stop()
 	for i := u.Opt.Count; i != 0; i-- {
@@ -70,7 +62,7 @@ func (u *UdpPinger) start(ctx context.Context, done chan struct{}) {
 			timer.Reset(u.Opt.Interval)
 		}
 
-		latency, err := Ping(addr, u.Opt.Timeout, payload)
+		latency, err := Ping(u.Opt.Address(), u.Opt.Timeout, payload)
 		u.Sta.Add(uint64(latency.Milliseconds()), err == nil)
 		if !u.Opt.Quite {
 			if err != nil {
@@ -86,25 +78,19 @@ func (u *UdpPinger) Protocol() string {
 	return Protocol
 }
 
-func (u *UdpPinger) SetAddress(address string) error {
-	host, port, err := net.SplitHostPort(address)
-	if err != nil {
-		host = address
-		port = anping.Port
-	}
-
-	if M.IsDomainName(host) {
-		ip, err := anping.LookupSingleIP(host, u.Opt.DomainStrategy)
+func (u *UdpPinger) SetAddress(address M.Socksaddr) error {
+	if !address.IsIP() {
+		ip, err := anping.LookupSingleIP(address, u.Opt.DomainStrategy)
 		if err != nil {
 			return err
 		}
-		return u.Opt.SetAddress(net.JoinHostPort(ip.String(), port))
+		return u.Opt.SetAddress(M.ParseSocksaddrHostPort(ip.String(), address.Port))
 	}
 
 	return u.Opt.SetAddress(address)
 }
 
-func Ping(addr net.Addr, timeout time.Duration, payload []byte) (time.Duration, error) {
+func Ping(addr M.Socksaddr, timeout time.Duration, payload []byte) (time.Duration, error) {
 	udpConn, err := net.ListenUDP("udp", nil)
 	if err != nil {
 		return -1, err

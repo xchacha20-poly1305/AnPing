@@ -2,6 +2,8 @@ package anping
 
 import (
 	"time"
+
+	M "github.com/sagernet/sing/common/metadata"
 )
 
 const (
@@ -14,7 +16,7 @@ const (
 
 type Options struct {
 	Count          int
-	address        string
+	address        M.Socksaddr
 	Timeout        time.Duration
 	Interval       time.Duration
 	Quite          bool
@@ -31,12 +33,11 @@ func NewOptions() *Options {
 	}
 }
 
-func (o *Options) Address() string {
+func (o *Options) Address() M.Socksaddr {
 	return o.address
 }
 
-// SetAddress sets the target address. If you are external user, please use AnPinger.SetAddress instead it.
-func (o *Options) SetAddress(address string) error {
+func (o *Options) SetAddress(address M.Socksaddr) error {
 	o.address = address
 	return nil
 }

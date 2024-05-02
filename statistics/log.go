@@ -2,11 +2,13 @@ package statistics
 
 import (
 	"time"
+
+	M "github.com/sagernet/sing/common/metadata"
 )
 
 type Logger interface {
-	OnStart(address string, statistics StatisticsGetter)
-	OnRecv(address string, statistics StatisticsGetter, t time.Duration)
-	OnLost(address string, statistics StatisticsGetter, errMessage string, t time.Duration)
-	OnFinish(address string, statistics StatisticsGetter)
+	OnStart(address M.Socksaddr, statistics StatisticsGetter)
+	OnRecv(address M.Socksaddr, statistics StatisticsGetter, t time.Duration)
+	OnLost(address M.Socksaddr, statistics StatisticsGetter, errMessage string, t time.Duration)
+	OnFinish(address M.Socksaddr, statistics StatisticsGetter)
 }

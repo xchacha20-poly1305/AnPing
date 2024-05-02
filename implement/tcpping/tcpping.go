@@ -3,7 +3,7 @@ package tcpping
 import (
 	"context"
 	"io"
-	"net"
+	"strconv"
 	"time"
 
 	M "github.com/sagernet/sing/common/metadata"
@@ -43,8 +43,6 @@ func (t *TcpPinger) start(ctx context.Context, done chan struct{}) {
 	t.OnStart()
 	defer t.OnFinish()
 
-	host, port, _ := net.SplitHostPort(t.Opt.Address())
-
 	timer := time.NewTimer(t.Opt.Interval)
 	for i := t.Opt.Count; i != 0; i-- {
 		select {
@@ -56,7 +54,11 @@ func (t *TcpPinger) start(ctx context.Context, done chan struct{}) {
 			timer.Reset(t.Opt.Interval)
 		}
 
-		latency, err := libping.TcpPing(host, port, t.Opt.Timeout)
+		latency, err := libping.TcpPing(
+			t.Opt.Address().AddrString(),
+			strconv.Itoa(int(t.Opt.Address().Port)),
+			t.Opt.Timeout,
+		)
 		t.Sta.Add(uint64(latency.Milliseconds()), err == nil)
 		if !t.Opt.Quite {
 			if err != nil {
@@ -72,19 +74,13 @@ func (t *TcpPinger) Protocol() string {
 	return Protocol
 }
 
-func (t *TcpPinger) SetAddress(address string) error {
-	host, port, err := net.SplitHostPort(address)
-	if err != nil {
-		host = address
-		port = anping.Port
-	}
-
-	if M.IsDomainName(host) {
-		ip, err := anping.LookupSingleIP(host, t.Opt.DomainStrategy)
+func (t *TcpPinger) SetAddress(address M.Socksaddr) error {
+	if !address.IsIP() {
+		ip, err := anping.LookupSingleIP(address, t.Opt.DomainStrategy)
 		if err != nil {
 			return err
 		}
-		return t.Opt.SetAddress(net.JoinHostPort(ip.String(), port))
+		return t.Opt.SetAddress(M.ParseSocksaddrHostPort(ip.String(), address.Port))
 	}
 
 	return t.Opt.SetAddress(address)

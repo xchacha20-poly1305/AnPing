@@ -7,6 +7,7 @@ import (
 	"time"
 
 	F "github.com/sagernet/sing/common/format"
+	M "github.com/sagernet/sing/common/metadata"
 	"github.com/xchacha20-poly1305/anping"
 	"github.com/xchacha20-poly1305/anping/statistics"
 )
@@ -69,8 +70,12 @@ func (a *AnPingerWrapper) ResetStatistics() {
 	a.Sta = statistics.NewStatistics()
 }
 
-func (a *AnPingerWrapper) SetAddress(address string) error {
+func (a *AnPingerWrapper) SetAddress(address M.Socksaddr) error {
 	return a.Opt.SetAddress(address)
+}
+
+func (a *AnPingerWrapper) Address() M.Socksaddr {
+	return a.Opt.Address()
 }
 
 func (a *AnPingerWrapper) SetLogger(logger statistics.Logger) {

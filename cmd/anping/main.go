@@ -12,6 +12,7 @@ import (
 	"syscall"
 	"time"
 
+	M "github.com/sagernet/sing/common/metadata"
 	"github.com/xchacha20-poly1305/anping"
 	"github.com/xchacha20-poly1305/anping/include"
 )
@@ -81,7 +82,7 @@ func main() {
 	}
 
 	pinger := creator(os.Stdout)
-	err := pinger.SetAddress(args[1])
+	err := pinger.SetAddress(M.ParseSocksaddr(args[1]))
 	if err != nil {
 		log.Fatalln(err)
 	}

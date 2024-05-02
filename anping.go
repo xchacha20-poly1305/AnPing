@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 
+	M "github.com/sagernet/sing/common/metadata"
 	"github.com/xchacha20-poly1305/anping/statistics"
 )
 
@@ -26,7 +27,8 @@ type AnPinger interface {
 	ResetStatistics()
 
 	// SetAddress set the address of pinger. Use it instead of set it in options.
-	SetAddress(address string) error
+	SetAddress(address M.Socksaddr) error
+	Address() M.Socksaddr
 
 	SetLogger(logger statistics.Logger)
 

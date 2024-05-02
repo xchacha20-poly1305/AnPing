@@ -5,6 +5,7 @@ import (
 	"net"
 
 	E "github.com/sagernet/sing/common/exceptions"
+	M "github.com/sagernet/sing/common/metadata"
 )
 
 // DomainStrategy is the behavior of dual stack.
@@ -16,8 +17,8 @@ const (
 	PreferIpv4
 )
 
-func LookupSingleIP(domain string, prefer DomainStrategy) (ip net.IP, err error) {
-	ips, err := net.LookupIP(domain)
+func LookupSingleIP(address M.Socksaddr, prefer DomainStrategy) (ip net.IP, err error) {
+	ips, err := net.LookupIP(address.Fqdn)
 	if err != nil {
 		return nil, E.Cause(err, "look up ip")
 	}
@@ -36,7 +37,7 @@ func LookupSingleIP(domain string, prefer DomainStrategy) (ip net.IP, err error)
 
 		l := len(ipv6s)
 		if l == 0 {
-			return nil, E.New("not found IPv6 address of ", domain)
+			return nil, E.New("not found IPv6 address of ", address.Fqdn)
 		}
 
 		ip = ipv6s[rand.IntN(l)]
@@ -51,7 +52,7 @@ func LookupSingleIP(domain string, prefer DomainStrategy) (ip net.IP, err error)
 
 		l := len(ipv4s)
 		if l == 0 {
-			return nil, E.New("not found IPv4 address of ", domain)
+			return nil, E.New("not found IPv4 address of ", address.Fqdn)
 		}
 
 		ip = ipv4s[rand.IntN(l)]
