@@ -1,8 +1,8 @@
 github.com/sagernet/sing v0.4.0-beta.18 h1:oK+pvyXnFwxwvQkeUqgxIeATiMHcrH5doLKKDGNmQkU=
 github.com/sagernet/sing v0.4.0-beta.18/go.mod h1:PFQKbElc2Pke7faBLv8oEba5ehtKO21Ho+TkYemTI3Y=
-github.com/xchacha20-poly1305/libping v0.4.1-beta.0 h1:7izWqz6WoD/dNZr/GcPQMyigfEFebEczolykAX/2I0A=
-github.com/xchacha20-poly1305/libping v0.4.1-beta.0/go.mod h1:wsuQHibsoBWKPt6cPFjOjr2Bu2DKgCfVqDRFzvtgknU=
-golang.org/x/net v0.24.0 h1:1PcaxkF854Fu3+lvBIx5SYn9wRlBzzcnHZSiaFFAb0w=
-golang.org/x/net v0.24.0/go.mod h1:2Q7sJY5mzlzWjKtYUEXSlBWCdyaioyXzRB2RtU8KVE8=
-golang.org/x/sys v0.19.0 h1:q5f1RH2jigJ1MoAWp2KTp3gm5zAGFUTarQZ5U386+4o=
-golang.org/x/sys v0.19.0/go.mod h1:/VUhepiaJMQUp4+oa/7Zr1D23ma6VTLIYjOOTFZPUcA=
+github.com/xchacha20-poly1305/libping v0.5.1 h1:/Jvyi2mjHdTn3771D05eqZ/oXWixxjuRDCstn7bZOcY=
+github.com/xchacha20-poly1305/libping v0.5.1/go.mod h1:y+6k2pUOJmXDv7uiOrRkccT3JzfRWDJ/jebiTBDn6Bc=
+golang.org/x/net v0.25.0 h1:d/OCCoBEUq33pjydKrGQhw7IlUPI2Oylr+8qLx49kac=
+golang.org/x/net v0.25.0/go.mod h1:JkAGAh7GEvH74S6FOH42FLoXpXbE/aqXSrIQjXgsiwM=
+golang.org/x/sys v0.20.0 h1:Od9JTbYCk261bKm4M/mw7AklTlFYIa0bIp9BgSm1S8Y=
+golang.org/x/sys v0.20.0/go.mod h1:/VUhepiaJMQUp4+oa/7Zr1D23ma6VTLIYjOOTFZPUcA=
