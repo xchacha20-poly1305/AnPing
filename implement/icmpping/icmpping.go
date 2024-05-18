@@ -60,7 +60,9 @@ func (i *IcmpPinger) start(ctx context.Context, done chan struct{}) {
 		payload := make([]byte, i.PayloadLength)
 		_, _ = rand.Read(payload)
 
-		t, err := libping.IcmpPing(i.Opt.Address().AddrString(), i.Opt.Timeout, payload)
+		sendCtx, cancel := context.WithTimeout(ctx, i.Opt.Timeout)
+		t, err := libping.IcmpPing(sendCtx, i.Opt.Address(), payload)
+		cancel()
 		i.Sta.Add(uint64(t.Milliseconds()), err == nil)
 		if !i.Opt.Quite {
 			if err != nil {

@@ -3,7 +3,6 @@ package tcpping
 import (
 	"context"
 	"io"
-	"strconv"
 	"time"
 
 	M "github.com/sagernet/sing/common/metadata"
@@ -54,11 +53,9 @@ func (t *TcpPinger) start(ctx context.Context, done chan struct{}) {
 			timer.Reset(t.Opt.Interval)
 		}
 
-		latency, err := libping.TcpPing(
-			t.Opt.Address().AddrString(),
-			strconv.Itoa(int(t.Opt.Address().Port)),
-			t.Opt.Timeout,
-		)
+		sendCtx, cancel := context.WithTimeout(ctx, t.Opt.Timeout)
+		latency, err := libping.TcpPing(sendCtx, t.Opt.Address())
+		cancel()
 		t.Sta.Add(uint64(latency.Milliseconds()), err == nil)
 		if !t.Opt.Quite {
 			if err != nil {
