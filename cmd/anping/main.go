@@ -70,6 +70,9 @@ func main() {
 		case "v", "version":
 			printVersion()
 			return
+		case "h", "help":
+			flag.Usage()
+			return
 		}
 		args = append(args, include.DefaultProtocol)
 		// turn to: "icmp <address>"
