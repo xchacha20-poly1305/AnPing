@@ -4,7 +4,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"log"
 	"os"
 	"os/signal"
 	"slices"
@@ -64,7 +63,7 @@ func main() {
 	args := flag.Args()
 	switch len(args) {
 	case 0:
-		log.Fatalln("Didn't set any args!")
+		fatal("Didn't set any args!\n")
 	case 1:
 		switch strings.ToLower(args[0]) {
 		case "v", "version":
@@ -81,7 +80,7 @@ func main() {
 
 	creator, ok := anping.AnPingerCreator[args[0]]
 	if !ok {
-		log.Fatalf("Not found protocol: %s\n", args[0])
+		fatal("Not found protocol: %s\n", args[0])
 	}
 
 	pinger := creator(os.Stdout)
@@ -94,7 +93,7 @@ func main() {
 	opts.DomainStrategy = domainStrategy
 	err := pinger.SetAddress(M.ParseSocksaddr(args[1]))
 	if err != nil {
-		log.Fatalln(err)
+		fatal("%v\n", err)
 	}
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM, syscall.SIGHUP)
@@ -109,4 +108,9 @@ func main() {
 
 func printVersion() {
 	fmt.Printf("AnPing: %s\n", version)
+}
+
+func fatal(format string, args ...any) {
+	fmt.Printf(format, args...)
+	os.Exit(1)
 }
