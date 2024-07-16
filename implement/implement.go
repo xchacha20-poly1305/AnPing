@@ -100,6 +100,14 @@ func (a *AnPingerWrapper) Done() <-chan struct{} {
 	return a.done
 }
 
+func (a *AnPingerWrapper) Clone() anping.AnPinger {
+	return &AnPingerWrapper{
+		Opt:    a.Opt,
+		Sta:    statistics.NewStatistics(),
+		logger: a.logger,
+	}
+}
+
 func (a *AnPingerWrapper) OnStart() {
 	if a.logger != nil {
 		a.logger.OnStart(a.Opt.Address(), a.Sta)

@@ -103,3 +103,10 @@ func (i *IcmpPinger) Close() error {
 func (i *IcmpPinger) Done() <-chan struct{} {
 	return i.done
 }
+
+func (i *IcmpPinger) Clone() anping.AnPinger {
+	return &IcmpPinger{
+		AnPingerWrapper: i.AnPingerWrapper.Clone().(*implement.AnPingerWrapper),
+		PayloadLength:   i.PayloadLength,
+	}
+}

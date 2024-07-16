@@ -36,4 +36,6 @@ type AnPinger interface {
 
 	io.Closer
 	Done() <-chan struct{}
+
+	Clone() AnPinger
 }

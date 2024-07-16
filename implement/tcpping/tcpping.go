@@ -96,3 +96,9 @@ func (t *TcpPinger) Close() error {
 func (t *TcpPinger) Done() <-chan struct{} {
 	return t.done
 }
+
+func (t *TcpPinger) Clone() anping.AnPinger {
+	return &TcpPinger{
+		AnPingerWrapper: t.AnPingerWrapper.Clone().(*implement.AnPingerWrapper),
+	}
+}

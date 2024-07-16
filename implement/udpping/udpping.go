@@ -104,6 +104,13 @@ func (u *UdpPinger) Done() <-chan struct{} {
 	return u.done
 }
 
+func (u *UdpPinger) Clone() anping.AnPinger {
+	return &UdpPinger{
+		AnPingerWrapper: u.AnPingerWrapper.Clone().(*implement.AnPingerWrapper),
+		PayloadLength:   u.PayloadLength,
+	}
+}
+
 func Ping(addr M.Socksaddr, timeout time.Duration, payload []byte) (time.Duration, error) {
 	conn, err := net.Dial(N.NetworkUDP, addr.String())
 	if err != nil {
