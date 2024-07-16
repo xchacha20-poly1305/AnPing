@@ -96,13 +96,12 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	osSignals := make(chan os.Signal, 1)
-	signal.Notify(osSignals, os.Interrupt, syscall.SIGTERM, syscall.SIGHUP)
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM, syscall.SIGHUP)
+	defer cancel()
 	done := pinger.Start(ctx)
 
 	select {
-	case <-osSignals:
+	case <-ctx.Done():
 	case <-done:
 	}
 	cancel()
