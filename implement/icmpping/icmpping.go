@@ -42,9 +42,11 @@ func (i *IcmpPinger) Start(ctx context.Context) <-chan struct{} {
 }
 
 func (i *IcmpPinger) start(ctx context.Context, done chan struct{}) {
-	defer implement.TryCloseDone(done)
 	i.OnStart()
-	defer i.OnFinish()
+	context.AfterFunc(ctx, func() {
+		i.OnFinish()
+		close(done)
+	})
 
 	timer := time.NewTimer(i.Opt.Interval)
 	for j := i.Opt.Count; j != 0; j-- {

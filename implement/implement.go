@@ -39,9 +39,11 @@ func (a *AnPingerWrapper) Start(ctx context.Context) <-chan struct{} {
 }
 
 func (a *AnPingerWrapper) start(ctx context.Context, done chan struct{}) {
-	defer TryCloseDone(done)
 	a.OnStart()
-	defer a.OnFinish()
+	context.AfterFunc(ctx, func() {
+		a.OnFinish()
+		close(done)
+	})
 
 	timer := time.NewTimer(a.Opt.Interval)
 	defer timer.Stop()
@@ -108,18 +110,4 @@ func (a *AnPingerWrapper) OnFinish() {
 	if a.logger != nil {
 		a.logger.OnFinish(a.Opt.Address(), a.Sta)
 	}
-}
-
-func TryCloseDone(dones ...chan struct{}) (closed int) {
-	for _, done := range dones {
-		select {
-		case <-done:
-			continue
-		default:
-			close(done)
-			closed++
-		}
-	}
-
-	return
 }

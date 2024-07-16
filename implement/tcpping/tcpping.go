@@ -38,9 +38,11 @@ func (t *TcpPinger) Start(ctx context.Context) <-chan struct{} {
 }
 
 func (t *TcpPinger) start(ctx context.Context, done chan struct{}) {
-	defer implement.TryCloseDone(done)
 	t.OnStart()
-	defer t.OnFinish()
+	context.AfterFunc(ctx, func() {
+		t.OnFinish()
+		close(done)
+	})
 
 	timer := time.NewTimer(t.Opt.Interval)
 	for i := t.Opt.Count; i != 0; i-- {

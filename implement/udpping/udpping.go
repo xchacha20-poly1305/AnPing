@@ -44,9 +44,11 @@ func (u *UdpPinger) Start(ctx context.Context) <-chan struct{} {
 }
 
 func (u *UdpPinger) start(ctx context.Context, done chan struct{}) {
-	defer implement.TryCloseDone(done)
 	u.OnStart()
-	defer u.OnFinish()
+	context.AfterFunc(ctx, func() {
+		u.OnFinish()
+		close(done)
+	})
 
 	payload := make([]byte, u.PayloadLength)
 	_, _ = rand.Read(payload)
