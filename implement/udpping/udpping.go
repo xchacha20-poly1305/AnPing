@@ -26,6 +26,7 @@ type UdpPinger struct {
 	*implement.AnPingerWrapper
 
 	PayloadLength int
+	done          chan struct{}
 }
 
 func New(logWriter io.Writer) anping.AnPinger {
@@ -37,18 +38,14 @@ func New(logWriter io.Writer) anping.AnPinger {
 	return u
 }
 
-func (u *UdpPinger) Start(ctx context.Context) <-chan struct{} {
-	done := make(chan struct{})
-	go u.start(ctx, done)
-	return done
+func (u *UdpPinger) Start(ctx context.Context) {
+	u.done = make(chan struct{})
+	go u.start(ctx)
 }
 
-func (u *UdpPinger) start(ctx context.Context, done chan struct{}) {
+func (u *UdpPinger) start(ctx context.Context) {
 	u.OnStart()
-	context.AfterFunc(ctx, func() {
-		u.OnFinish()
-		close(done)
-	})
+	context.AfterFunc(ctx, u.OnFinish)
 
 	payload := make([]byte, u.PayloadLength)
 	_, _ = rand.Read(payload)
@@ -59,7 +56,7 @@ func (u *UdpPinger) start(ctx context.Context, done chan struct{}) {
 		select {
 		case <-ctx.Done():
 			return
-		case <-done:
+		case <-u.done:
 			return
 		case <-timer.C:
 			timer.Reset(u.Opt.Interval)
@@ -91,6 +88,20 @@ func (u *UdpPinger) SetAddress(address M.Socksaddr) error {
 	}
 
 	return u.Opt.SetAddress(address)
+}
+
+func (u *UdpPinger) Close() error {
+	select {
+	case <-u.done:
+		return net.ErrClosed
+	default:
+		close(u.done)
+		return nil
+	}
+}
+
+func (u *UdpPinger) Done() <-chan struct{} {
+	return u.done
 }
 
 func Ping(addr M.Socksaddr, timeout time.Duration, payload []byte) (time.Duration, error) {

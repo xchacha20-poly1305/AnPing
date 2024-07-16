@@ -16,7 +16,7 @@ var AnPingerCreator = map[string]InitPinger{}
 // You can absorb it by canal context.
 type AnPinger interface {
 	// Start starts AnPinger until context cancel or other reason.
-	Start(ctx context.Context) (done <-chan struct{})
+	Start(ctx context.Context)
 
 	// Protocol returns the protocol of AnPinger.
 	Protocol() string
@@ -33,4 +33,7 @@ type AnPinger interface {
 	SetLogger(logger statistics.Logger)
 
 	Options() *Options
+
+	io.Closer
+	Done() <-chan struct{}
 }

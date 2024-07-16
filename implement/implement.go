@@ -4,6 +4,7 @@ package implement
 import (
 	"context"
 	"io"
+	"net"
 	"time"
 
 	F "github.com/sagernet/sing/common/format"
@@ -22,6 +23,7 @@ type AnPingerWrapper struct {
 	Sta *statistics.Statistics
 
 	logger statistics.Logger
+	done   chan struct{}
 }
 
 func New(logWriter io.Writer) anping.AnPinger {
@@ -32,18 +34,14 @@ func New(logWriter io.Writer) anping.AnPinger {
 	}
 }
 
-func (a *AnPingerWrapper) Start(ctx context.Context) <-chan struct{} {
-	done := make(chan struct{})
-	go a.start(ctx, done)
-	return done
+func (a *AnPingerWrapper) Start(ctx context.Context) {
+	a.done = make(chan struct{})
+	go a.start(ctx)
 }
 
-func (a *AnPingerWrapper) start(ctx context.Context, done chan struct{}) {
+func (a *AnPingerWrapper) start(ctx context.Context) {
 	a.OnStart()
-	context.AfterFunc(ctx, func() {
-		a.OnFinish()
-		close(done)
-	})
+	context.AfterFunc(ctx, a.OnFinish)
 
 	timer := time.NewTimer(a.Opt.Interval)
 	defer timer.Stop()
@@ -51,7 +49,7 @@ func (a *AnPingerWrapper) start(ctx context.Context, done chan struct{}) {
 		select {
 		case <-ctx.Done():
 			return
-		case <-done:
+		case <-a.done:
 			return
 		case <-timer.C:
 			timer.Reset(a.Opt.Interval)
@@ -86,6 +84,20 @@ func (a *AnPingerWrapper) SetLogger(logger statistics.Logger) {
 
 func (a *AnPingerWrapper) Options() *anping.Options {
 	return a.Opt
+}
+
+func (a *AnPingerWrapper) Close() error {
+	select {
+	case <-a.done:
+		return net.ErrClosed
+	default:
+		close(a.done)
+		return nil
+	}
+}
+
+func (a *AnPingerWrapper) Done() <-chan struct{} {
+	return a.done
 }
 
 func (a *AnPingerWrapper) OnStart() {

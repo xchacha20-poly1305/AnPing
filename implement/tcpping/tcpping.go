@@ -3,6 +3,7 @@ package tcpping
 import (
 	"context"
 	"io"
+	"net"
 	"time"
 
 	M "github.com/sagernet/sing/common/metadata"
@@ -20,6 +21,7 @@ func init() {
 
 type TcpPinger struct {
 	*implement.AnPingerWrapper
+	done chan struct{}
 }
 
 func New(logWriter io.Writer) anping.AnPinger {
@@ -31,25 +33,21 @@ func New(logWriter io.Writer) anping.AnPinger {
 	return t
 }
 
-func (t *TcpPinger) Start(ctx context.Context) <-chan struct{} {
-	done := make(chan struct{})
-	go t.start(ctx, done)
-	return done
+func (t *TcpPinger) Start(ctx context.Context) {
+	t.done = make(chan struct{})
+	go t.start(ctx)
 }
 
-func (t *TcpPinger) start(ctx context.Context, done chan struct{}) {
+func (t *TcpPinger) start(ctx context.Context) {
 	t.OnStart()
-	context.AfterFunc(ctx, func() {
-		t.OnFinish()
-		close(done)
-	})
+	context.AfterFunc(ctx, t.OnFinish)
 
 	timer := time.NewTimer(t.Opt.Interval)
 	for i := t.Opt.Count; i != 0; i-- {
 		select {
 		case <-ctx.Done():
 			return
-		case <-done:
+		case <-t.done:
 			return
 		case <-timer.C:
 			timer.Reset(t.Opt.Interval)
@@ -83,4 +81,18 @@ func (t *TcpPinger) SetAddress(address M.Socksaddr) error {
 	}
 
 	return t.Opt.SetAddress(address)
+}
+
+func (t *TcpPinger) Close() error {
+	select {
+	case <-t.done:
+		return net.ErrClosed
+	default:
+		close(t.done)
+		return nil
+	}
+}
+
+func (t *TcpPinger) Done() <-chan struct{} {
+	return t.done
 }

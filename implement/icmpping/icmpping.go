@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"io"
+	"net"
 	"time"
 
 	M "github.com/sagernet/sing/common/metadata"
@@ -24,6 +25,7 @@ func init() {
 type IcmpPinger struct {
 	*implement.AnPingerWrapper
 	PayloadLength int
+	done          chan struct{}
 }
 
 func New(logWriter io.Writer) anping.AnPinger {
@@ -35,25 +37,21 @@ func New(logWriter io.Writer) anping.AnPinger {
 	return i
 }
 
-func (i *IcmpPinger) Start(ctx context.Context) <-chan struct{} {
-	done := make(chan struct{})
-	go i.start(ctx, done)
-	return done
+func (i *IcmpPinger) Start(ctx context.Context) {
+	i.done = make(chan struct{})
+	go i.start(ctx)
 }
 
-func (i *IcmpPinger) start(ctx context.Context, done chan struct{}) {
+func (i *IcmpPinger) start(ctx context.Context) {
 	i.OnStart()
-	context.AfterFunc(ctx, func() {
-		i.OnFinish()
-		close(done)
-	})
+	context.AfterFunc(ctx, i.OnFinish)
 
 	timer := time.NewTimer(i.Opt.Interval)
 	for j := i.Opt.Count; j != 0; j-- {
 		select {
 		case <-ctx.Done():
 			return
-		case <-done:
+		case <-i.done:
 			return
 		case <-timer.C:
 			timer.Reset(i.Opt.Interval)
@@ -90,4 +88,18 @@ func (i *IcmpPinger) SetAddress(address M.Socksaddr) error {
 	}
 
 	return i.Opt.SetAddress(address)
+}
+
+func (i *IcmpPinger) Close() error {
+	select {
+	case <-i.done:
+		return net.ErrClosed
+	default:
+		close(i.done)
+		return nil
+	}
+}
+
+func (i *IcmpPinger) Done() <-chan struct{} {
+	return i.done
 }
