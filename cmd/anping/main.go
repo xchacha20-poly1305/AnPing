@@ -107,7 +107,7 @@ func main() {
 }
 
 func printVersion() {
-	fmt.Printf("AnPing: %s\n", version)
+	fmt.Println("AnPing:", version)
 }
 
 func fatal(format string, args ...any) {
