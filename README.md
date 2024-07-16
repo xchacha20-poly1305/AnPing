@@ -33,4 +33,4 @@ Get anping in `./build/anping`
 
 * [i3h/tcping](https://github.com/i3h/tcping)
 
-* [wangyu-UDPping](https://github.com/wangyu-/UDPping)
+* [wangyu-/UDPping](https://github.com/wangyu-/UDPping)
