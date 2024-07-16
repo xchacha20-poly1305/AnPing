@@ -9,6 +9,7 @@ import (
 
 	E "github.com/sagernet/sing/common/exceptions"
 	M "github.com/sagernet/sing/common/metadata"
+	N "github.com/sagernet/sing/common/network"
 	"github.com/xchacha20-poly1305/anping"
 	"github.com/xchacha20-poly1305/anping/implement"
 )
@@ -91,24 +92,21 @@ func (u *UdpPinger) SetAddress(address M.Socksaddr) error {
 }
 
 func Ping(addr M.Socksaddr, timeout time.Duration, payload []byte) (time.Duration, error) {
-	udpConn, err := net.ListenUDP("udp", nil)
+	conn, err := net.Dial(N.NetworkUDP, addr.String())
 	if err != nil {
 		return -1, err
 	}
-	defer func() {
-		_ = udpConn.Close()
-		udpConn = nil
-	}()
+	defer conn.Close()
 
 	start := time.Now()
-	_, err = udpConn.WriteTo(payload, addr)
+	_, err = conn.Write(payload)
 	if err != nil {
 		return -1, E.Cause(err, "write to udpConn")
 	}
 
-	_ = udpConn.SetReadDeadline(time.Now().Add(timeout))
+	_ = conn.SetReadDeadline(time.Now().Add(timeout))
 	buf := make([]byte, 1)
-	_, err = udpConn.Read(buf)
+	_, err = io.ReadFull(conn, buf)
 	if err != nil {
 		return -1, E.Cause(err, "read udpConn")
 	}
