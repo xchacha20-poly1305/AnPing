@@ -11,7 +11,7 @@ const (
 	Timeout       = 3000 * time.Millisecond
 	Interval      = time.Second
 	Port          = "443"
-	PayloadLength = 20
+	PayloadLength = 40
 )
 
 type Options struct {
