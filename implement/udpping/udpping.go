@@ -49,6 +49,11 @@ func (u *UdpPinger) start(ctx context.Context) {
 
 	payload := make([]byte, u.PayloadLength)
 	_, _ = rand.Read(payload)
+	dialer := &net.Dialer{}
+	if udpAddr, _ := net.ResolveUDPAddr(N.NetworkUDP, u.Opt.BindIP); udpAddr != nil {
+		udpAddr.Port = 0 // Not use same port
+		dialer.LocalAddr = udpAddr
+	}
 
 	timer := time.NewTimer(u.Opt.Interval)
 	defer timer.Stop()
@@ -62,7 +67,14 @@ func (u *UdpPinger) start(ctx context.Context) {
 			timer.Reset(u.Opt.Interval)
 		}
 
-		latency, err := Ping(u.Opt.Address(), u.Opt.Timeout, payload)
+		sendCtx, cancel := context.WithTimeout(ctx, u.Opt.Timeout)
+		latency, err := Ping(
+			sendCtx,
+			dialer,
+			u.Opt.Address(),
+			payload,
+		)
+		cancel()
 		u.Sta.Add(uint64(latency.Milliseconds()), err == nil)
 		if !u.Opt.Quite {
 			if err != nil {
@@ -111,12 +123,15 @@ func (u *UdpPinger) Clone() anping.AnPinger {
 	}
 }
 
-func Ping(addr M.Socksaddr, timeout time.Duration, payload []byte) (time.Duration, error) {
-	conn, err := net.Dial(N.NetworkUDP, addr.String())
+func Ping(ctx context.Context, dialer *net.Dialer, addr M.Socksaddr, payload []byte) (time.Duration, error) {
+	conn, err := dialer.DialContext(ctx, N.NetworkUDP, addr.String())
 	if err != nil {
 		return -1, err
 	}
 	defer conn.Close()
+	context.AfterFunc(ctx, func() {
+		_ = conn.SetDeadline(time.Now())
+	})
 
 	start := time.Now()
 	_, err = conn.Write(payload)
@@ -124,7 +139,6 @@ func Ping(addr M.Socksaddr, timeout time.Duration, payload []byte) (time.Duratio
 		return -1, E.Cause(err, "write to udpConn")
 	}
 
-	_ = conn.SetReadDeadline(time.Now().Add(timeout))
 	buf := make([]byte, 1)
 	_, err = io.ReadFull(conn, buf)
 	if err != nil {

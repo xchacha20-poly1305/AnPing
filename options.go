@@ -19,6 +19,7 @@ type Options struct {
 	address        M.Socksaddr
 	Timeout        time.Duration
 	Interval       time.Duration
+	BindIP         string
 	Quite          bool
 	DomainStrategy DomainStrategy
 }

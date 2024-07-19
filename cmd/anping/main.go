@@ -25,6 +25,7 @@ var (
 	quite    bool
 	count    int
 	timeout  time.Duration
+	bindIP   string
 
 	prefer6        bool
 	prefer4        bool
@@ -38,6 +39,7 @@ func init() {
 	flag.BoolVar(&quite, "q", false, "Quite mode")
 	flag.IntVar(&count, "c", anping.Count, "Ping count")
 	flag.DurationVar(&timeout, "W", anping.Timeout, "Ping timeout")
+	flag.StringVar(&bindIP, "I", "", "Source address")
 
 	flag.BoolVar(&prefer6, "6", false, "Prefer to IPv6")
 	flag.BoolVar(&prefer4, "4", false, "Prefer to IPv4")
@@ -90,6 +92,7 @@ func main() {
 	opts.Timeout = timeout
 	opts.Interval = interval
 	opts.Quite = quite
+	opts.BindIP = bindIP
 	opts.DomainStrategy = domainStrategy
 	err := pinger.SetAddress(M.ParseSocksaddr(args[1]))
 	if err != nil {

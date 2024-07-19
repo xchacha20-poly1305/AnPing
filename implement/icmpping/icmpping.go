@@ -12,6 +12,7 @@ import (
 	"github.com/xchacha20-poly1305/anping/implement"
 	"github.com/xchacha20-poly1305/anping/statistics"
 	"github.com/xchacha20-poly1305/libping"
+	"golang.org/x/sys/unix"
 )
 
 const Protocol = "icmp"
@@ -46,6 +47,7 @@ func (i *IcmpPinger) start(ctx context.Context) {
 	i.OnStart()
 	context.AfterFunc(ctx, i.OnFinish)
 
+	bindAddr := resolveBindIP(i.Opt.BindIP)
 	timer := time.NewTimer(i.Opt.Interval)
 	for j := i.Opt.Count; j != 0; j-- {
 		select {
@@ -61,7 +63,7 @@ func (i *IcmpPinger) start(ctx context.Context) {
 		_, _ = rand.Read(payload)
 
 		sendCtx, cancel := context.WithTimeout(ctx, i.Opt.Timeout)
-		t, err := libping.IcmpPing(sendCtx, i.Opt.Address(), payload)
+		t, err := libping.IcmpPing(sendCtx, i.Opt.Address(), payload, bindAddr)
 		cancel()
 		i.Sta.Add(uint64(t.Milliseconds()), err == nil)
 		if !i.Opt.Quite {
@@ -109,4 +111,27 @@ func (i *IcmpPinger) Clone() anping.AnPinger {
 		AnPingerWrapper: i.AnPingerWrapper.Clone().(*implement.AnPingerWrapper),
 		PayloadLength:   i.PayloadLength,
 	}
+}
+
+func resolveBindIP(bindIP string) unix.Sockaddr {
+	if bindIP == "" {
+		return nil
+	}
+
+	addr := M.ParseSocksaddr(bindIP)
+	// Turn port to 0 to prevent use same port.
+	if addr.IsIPv6() {
+		return &unix.SockaddrInet6{
+			Port: 0,
+			Addr: [16]byte(addr.IPAddr().IP),
+		}
+	}
+	if addr.IsIPv4() {
+		return &unix.SockaddrInet4{
+			Port: 0,
+			Addr: [4]byte(addr.IPAddr().IP),
+		}
+	}
+
+	return nil
 }

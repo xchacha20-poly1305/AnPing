@@ -7,6 +7,7 @@ import (
 	"time"
 
 	M "github.com/sagernet/sing/common/metadata"
+	N "github.com/sagernet/sing/common/network"
 	"github.com/xchacha20-poly1305/anping"
 	"github.com/xchacha20-poly1305/anping/implement"
 	"github.com/xchacha20-poly1305/anping/statistics"
@@ -42,6 +43,12 @@ func (t *TcpPinger) start(ctx context.Context) {
 	t.OnStart()
 	context.AfterFunc(ctx, t.OnFinish)
 
+	dialer := &net.Dialer{}
+	if tcpAddr, _ := net.ResolveTCPAddr(N.NetworkTCP, t.Opt.BindIP); tcpAddr != nil {
+		tcpAddr.Port = 0 // Not use same port
+		dialer.LocalAddr = tcpAddr
+	}
+
 	timer := time.NewTimer(t.Opt.Interval)
 	for i := t.Opt.Count; i != 0; i-- {
 		select {
@@ -54,7 +61,11 @@ func (t *TcpPinger) start(ctx context.Context) {
 		}
 
 		sendCtx, cancel := context.WithTimeout(ctx, t.Opt.Timeout)
-		latency, err := libping.TcpPing(sendCtx, t.Opt.Address())
+		latency, err := libping.TcpPing(
+			sendCtx,
+			dialer,
+			t.Opt.Address(),
+		)
 		cancel()
 		t.Sta.Add(uint64(latency.Milliseconds()), err == nil)
 		if !t.Opt.Quite {
