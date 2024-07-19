@@ -4,7 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"io"
-	"net"
+	"os"
 	"time"
 
 	M "github.com/sagernet/sing/common/metadata"
@@ -95,7 +95,7 @@ func (i *IcmpPinger) SetAddress(address M.Socksaddr) error {
 func (i *IcmpPinger) Close() error {
 	select {
 	case <-i.done:
-		return net.ErrClosed
+		return os.ErrClosed
 	default:
 		close(i.done)
 		return nil

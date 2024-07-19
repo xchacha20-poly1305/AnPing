@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"net"
+	"os"
 	"time"
 
 	M "github.com/sagernet/sing/common/metadata"
@@ -97,7 +98,7 @@ func (t *TcpPinger) SetAddress(address M.Socksaddr) error {
 func (t *TcpPinger) Close() error {
 	select {
 	case <-t.done:
-		return net.ErrClosed
+		return os.ErrClosed
 	default:
 		close(t.done)
 		return nil

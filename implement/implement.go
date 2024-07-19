@@ -4,7 +4,7 @@ package implement
 import (
 	"context"
 	"io"
-	"net"
+	"os"
 	"time"
 
 	F "github.com/sagernet/sing/common/format"
@@ -89,7 +89,7 @@ func (a *AnPingerWrapper) Options() *anping.Options {
 func (a *AnPingerWrapper) Close() error {
 	select {
 	case <-a.done:
-		return net.ErrClosed
+		return os.ErrClosed
 	default:
 		close(a.done)
 		return nil

@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"io"
 	"net"
+	"os"
 	"time"
 
 	E "github.com/sagernet/sing/common/exceptions"
@@ -105,7 +106,7 @@ func (u *UdpPinger) SetAddress(address M.Socksaddr) error {
 func (u *UdpPinger) Close() error {
 	select {
 	case <-u.done:
-		return net.ErrClosed
+		return os.ErrClosed
 	default:
 		close(u.done)
 		return nil
