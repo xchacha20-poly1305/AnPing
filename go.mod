@@ -4,7 +4,7 @@ go 1.22
 
 require (
 	github.com/sagernet/sing v0.4.3
-	github.com/xchacha20-poly1305/libping v0.7.0
+	github.com/xchacha20-poly1305/libping v0.7.1
 )
 
 require (
