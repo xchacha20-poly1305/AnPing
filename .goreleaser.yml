@@ -1,0 +1,32 @@
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+version: 2
+project_name: anping
+builds:
+  - id: main
+    main: ./cmd/anping
+    flags:
+      - -v
+      - -trimpath
+    ldflags:
+      - -X main.Version={{ .Version }}
+      - -s
+      - -buildid=
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - darwin
+      - windows
+      - linux
+    goarch:
+      - 386
+      - amd64
+      - arm64
+    goarm:
+      - 6
+      - 7
+    mod_timestamp: "{{ .CommitTimestamp }}"
+
+release:
+  draft: true
+  replace_existing_draft: true
+  prerelease: auto
