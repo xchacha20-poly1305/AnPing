@@ -5,7 +5,6 @@ import (
 	crand "crypto/rand"
 	"flag"
 	"fmt"
-	"io"
 	"math/rand/v2"
 	"net"
 	"os"
@@ -133,19 +132,14 @@ func main() {
 		addr.Addr = M.AddrFromIP(ips[rand.IntN(len(ips))])
 	}
 
-	var logger anping.Logger
-	if quite {
-		logger = anping.NewLogger("", "", io.Discard)
-	} else {
-		var target string
-		switch args[0] {
-		case icmpping.Type:
-			target = addr.AddrString()
-		default:
-			target = addr.String()
-		}
-		logger = anping.NewLogger(args[0], target, os.Stdout)
+	var target string
+	switch args[0] {
+	case icmpping.Type:
+		target = addr.AddrString()
+	default:
+		target = addr.String()
 	}
+	logger := anping.NewLogger(args[0], target, os.Stdout, quite)
 	commonSettings := anping.NewSettings(control.NewDefaultInterfaceFinder())
 	commonSettings.SetLogger(logger)
 	commonSettings.SetTarget(addr)
