@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/sagernet/sing/common/control"
-
 	"github.com/xchacha20-poly1305/anping"
 	"github.com/xchacha20-poly1305/libping"
 )

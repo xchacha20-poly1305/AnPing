@@ -18,7 +18,6 @@ import (
 	"github.com/sagernet/sing/common/control"
 	M "github.com/sagernet/sing/common/metadata"
 	N "github.com/sagernet/sing/common/network"
-
 	"github.com/xchacha20-poly1305/anping"
 	"github.com/xchacha20-poly1305/anping/icmpping"
 	"github.com/xchacha20-poly1305/anping/tcpping"

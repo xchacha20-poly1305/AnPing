@@ -14,7 +14,6 @@ import (
 	E "github.com/sagernet/sing/common/exceptions"
 	M "github.com/sagernet/sing/common/metadata"
 	"github.com/sagernet/sing/common/network"
-
 	"github.com/xchacha20-poly1305/anping"
 )
 
