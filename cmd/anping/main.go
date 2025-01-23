@@ -30,6 +30,7 @@ var (
 	interval           time.Duration
 	quite              bool
 	timeout            time.Duration
+	flood              bool
 	justIPv4, justIPv6 bool
 
 	payloadLength  int
@@ -47,6 +48,7 @@ func init() {
 	flag.BoolVar(&justIPv4, "4", false, "use IPv4")
 	flag.BoolVar(&justIPv6, "6", false, "use IPv4")
 	flag.BoolVar(&showVersion, "V", false, "print version and exit")
+	flag.BoolVar(&flood, "f", false, "flood ping")
 
 	flag.IntVar(&payloadLength, "pl", 40, "[UDP/ICMP] payload length")
 	flag.StringVar(&payloadContent, "p", "", "[UDP/ICMP] contents of padding byte")
@@ -58,6 +60,13 @@ func init() {
 	}
 	if justIPv4 && justIPv6 {
 		fatal("Refer IPv4 & IPv6 at the same time!\n")
+	}
+	if flood {
+		const floodMinimumInterval = 2 * time.Millisecond
+		if interval > floodMinimumInterval {
+			fatal("Provided interval(%s) is greater than 2 millisecond, try to use -i 2ms.\n", interval)
+		}
+		quite = true
 	}
 }
 
