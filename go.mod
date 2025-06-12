@@ -1,13 +1,13 @@
 module github.com/xchacha20-poly1305/anping
 
-go 1.22
+go 1.23.0
 
 require (
-	github.com/sagernet/sing v0.5.1
+	github.com/sagernet/sing v0.6.11
 	github.com/xchacha20-poly1305/libping v0.7.1
 )
 
 require (
 	golang.org/x/net v0.34.0 // indirect
-	golang.org/x/sys v0.29.0 // indirect
+	golang.org/x/sys v0.33.0 // indirect
 )
