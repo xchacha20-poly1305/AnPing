@@ -2,10 +2,9 @@ package main
 
 import (
 	"context"
-	crand "crypto/rand"
+	"crypto/rand"
 	"flag"
 	"fmt"
-	"math/rand/v2"
 	"net"
 	"os"
 	"os/signal"
@@ -138,7 +137,7 @@ func main() {
 			fatalf("Not found any IP of %s\n", addr.Fqdn)
 		}
 		addr.Fqdn = ""
-		addr.Addr = M.AddrFromIP(ips[rand.IntN(len(ips))])
+		addr.Addr = M.AddrFromIP(ips[0])
 	}
 
 	var target string
@@ -196,7 +195,7 @@ func payloadFunc() func() []byte {
 	}
 	if payloadLength > 0 {
 		payload := make([]byte, payloadLength)
-		_, _ = crand.Read(payload)
+		_, _ = rand.Read(payload)
 		return func() []byte {
 			return payload
 		}
