@@ -39,18 +39,18 @@ var (
 )
 
 func init() {
-	flag.Int64Var(&count, "c", 0, "stop after <count> replies")
-	flag.StringVar(&interfaceName, "I", "", "bind interface name")
-	flag.DurationVar(&interval, "i", time.Second, "duration between sending each packet")
-	flag.BoolVar(&quite, "q", false, "quiet mode")
-	flag.DurationVar(&timeout, "W", 500*time.Millisecond, "time to wait for response")
-	flag.BoolVar(&justIPv4, "4", false, "use IPv4")
-	flag.BoolVar(&justIPv6, "6", false, "use IPv4")
-	flag.BoolVar(&showVersion, "V", false, "print version and exit")
-	flag.BoolVar(&flood, "f", false, "flood ping")
+	flag.Int64Var(&count, "c", 0, "Stop after <count> replies. If it <= 0, it will loop forever.")
+	flag.StringVar(&interfaceName, "I", "", "Bind interface name.")
+	flag.DurationVar(&interval, "i", time.Second, "Duration between sending each packet.")
+	flag.BoolVar(&quite, "q", false, "Enabled quiet mode.")
+	flag.DurationVar(&timeout, "W", 500*time.Millisecond, "Time to wait for response.")
+	flag.BoolVar(&justIPv4, "4", false, "Use IPv4.")
+	flag.BoolVar(&justIPv6, "6", false, "Use IPv4.")
+	flag.BoolVar(&showVersion, "V", false, "Print version and exit.")
+	flag.BoolVar(&flood, "f", false, "Flood ping.")
 
-	flag.IntVar(&payloadLength, "pl", 40, "[UDP/ICMP] payload length")
-	flag.StringVar(&payloadContent, "p", "", "[UDP/ICMP] contents of padding byte")
+	flag.IntVar(&payloadLength, "pl", 40, "[UDP/ICMP] Payload length.")
+	flag.StringVar(&payloadContent, "p", "", "[UDP/ICMP] Contents of padding byte.")
 
 	flag.Parse()
 
