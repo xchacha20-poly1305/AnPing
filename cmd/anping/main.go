@@ -59,12 +59,12 @@ func init() {
 		printVersion()
 	}
 	if justIPv4 && justIPv6 {
-		fatal("Refer IPv4 & IPv6 at the same time!\n")
+		fatalf("Refer IPv4 & IPv6 at the same time!\n")
 	}
 	if flood {
 		const floodMinimumInterval = 2 * time.Millisecond
 		if interval > floodMinimumInterval {
-			fatal("Provided interval(%s) is greater than 2 millisecond, try to use -i 2ms.\n", interval)
+			fatalf("Provided interval(%s) is greater than 2 millisecond, try to use -i 2ms.\n", interval)
 		}
 		quite = true
 	}
@@ -74,7 +74,7 @@ func main() {
 	args := flag.Args()
 	switch len(args) {
 	case 0:
-		fatal("Not provided any address!\n")
+		fatalf("Not provided any address!\n")
 	case 1:
 		switch strings.ToLower(args[0]) {
 		case "v", "version":
@@ -86,28 +86,28 @@ func main() {
 		args = append([]string{DefaultType}, args...)
 	case 2:
 	default:
-		fatal("To many args: %v\n", args)
+		fatalf("To many args: %v\n", args)
 	}
 
 	switch args[0] {
 	case icmpping.Type:
 		if runtime.GOOS == "windows" {
-			fatal("Not support ICMP ping on Windows")
+			fatalf("Not support ICMP ping on Windows")
 		}
 	case tcpping.Type, udpping.Type:
 	default:
-		fatal("Unknown type: %s\n", args[0])
+		fatalf("Unknown type: %s\n", args[0])
 	}
 
 	addr := M.ParseSocksaddr(args[1])
 	if !addr.IsValid() {
-		fatal("Invalid address: %s", args[1])
+		fatalf("Invalid address: %s", args[1])
 	}
 	if justIPv4 && addr.IsIPv6() {
-		fatal("Provided IPv6 address but use IPv4\n")
+		fatalf("Provided IPv6 address but use IPv4\n")
 	}
 	if justIPv6 && addr.IsIPv4() {
-		fatal("Provided IPv4 address but use IPv6\n")
+		fatalf("Provided IPv4 address but use IPv6\n")
 	}
 	if addr.IsFqdn() {
 		const resolveTimeout = 3 * time.Second
@@ -122,7 +122,7 @@ func main() {
 		ips, err := net.DefaultResolver.LookupIP(ctx, network, addr.Fqdn)
 		cancel()
 		if err != nil {
-			fatal("Look up IP for %s: $v\n", addr.Fqdn, err)
+			fatalf("Look up IP for %s: %v\n", addr.Fqdn, err)
 		}
 		if justIPv4 {
 			ips = common.Filter(ips, func(it net.IP) bool {
@@ -135,7 +135,7 @@ func main() {
 			})
 		}
 		if len(ips) == 0 {
-			fatal("Not found any IP of %s\n", addr.Fqdn)
+			fatalf("Not found any IP of %s\n", addr.Fqdn)
 		}
 		addr.Fqdn = ""
 		addr.Addr = M.AddrFromIP(ips[rand.IntN(len(ips))])
@@ -174,7 +174,7 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM, syscall.SIGHUP)
 	err := instance.Start(ctx)
 	if err != nil {
-		fatal("Run instance: %v", err)
+		fatalf("Run instance: %v", err)
 	}
 	select {
 	case <-ctx.Done():
@@ -185,14 +185,14 @@ func main() {
 	}
 }
 
-func fatal(format string, args ...any) {
+func fatalf(format string, args ...any) {
 	_, _ = fmt.Fprintf(os.Stderr, format, args...)
 	os.Exit(1)
 }
 
 func payloadFunc() func() []byte {
 	if payloadContent != "" && payloadLength > 0 {
-		fatal("Set payload content and length")
+		fatalf("Set payload content and length in the same time")
 	}
 	if payloadLength > 0 {
 		payload := make([]byte, payloadLength)
