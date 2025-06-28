@@ -67,6 +67,17 @@ func init() {
 		}
 		quite = true
 	}
+	if interval == 0 {
+		fatalf("Interval == 0 means flood mod, please use '-f; instead.")
+	} else if interval < 0 {
+		fatalf("Interval (%v) should greater than zero!", interval)
+	}
+	if timeout <= 0 {
+		fatalf("Timeout (%v) should grater than zero!", timeout)
+	}
+	if payloadLength < 0 {
+		fatalf("Payload length (%d) should grater than zero!", payloadLength)
+	}
 }
 
 func main() {
