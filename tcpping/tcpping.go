@@ -69,7 +69,7 @@ func (t *TcpPinger) loop(ctx context.Context, controlFunc control.Func) {
 		case <-time.After(t.Interval()):
 		}
 		ctx, cancel := context.WithTimeout(ctx, t.Timeout())
-		latency, err := libping.TcpPing(ctx, controlFunc, t.Target())
+		latency, err := libping.TcpPing(ctx, t.Target(), controlFunc)
 		cancel()
 		if err == nil {
 			t.Logger().OnReceive(latency)
