@@ -1,5 +1,5 @@
 NAME = anping
-VERSION = v0.5.2
+VERSION = v0.6.0
 PARAMS = -v -trimpath -ldflags "-X 'main.Version=$(VERSION)' -s -w -buildid="
 MAIN = ./cmd/$(NAME)
 

@@ -8,7 +8,6 @@ import (
 	"net"
 	"os"
 	"os/signal"
-	"runtime"
 	"strings"
 	"syscall"
 	"time"
@@ -21,6 +20,10 @@ import (
 	"github.com/xchacha20-poly1305/anping/icmpping"
 	"github.com/xchacha20-poly1305/anping/tcpping"
 	"github.com/xchacha20-poly1305/anping/udpping"
+)
+
+const (
+	DefaultType = icmpping.Type
 )
 
 var (
@@ -101,9 +104,6 @@ func main() {
 
 	switch args[0] {
 	case icmpping.Type:
-		if runtime.GOOS == "windows" {
-			fatalf("Not support ICMP ping on Windows")
-		}
 	case tcpping.Type, udpping.Type:
 	default:
 		fatalf("Unknown type: %s\n", args[0])

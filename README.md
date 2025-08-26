@@ -1,10 +1,6 @@
 # AnPing
 
-AnPing is a network probing tool.
-| OS | Protocol |
-|-------|----------------|
-| Linux | ICMP, TCP, UDP |
-| Stub | TCP, UDP |
+AnPing is a network probing tool, supporting ICMP, TCP and UDP ping.
 
 # Usage
 
