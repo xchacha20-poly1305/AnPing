@@ -1,7 +1,5 @@
 github.com/sagernet/sing v0.7.6-0.20250825141840-811aa328e57b h1:RCfo1Q6VDAXfumNupRyqTomKzDODhASswkxVCqM8l2M=
 github.com/sagernet/sing v0.7.6-0.20250825141840-811aa328e57b/go.mod h1:ARkL0gM13/Iv5VCZmci/NuoOlePoIsW0m7BWfln/Hak=
-github.com/xchacha20-poly1305/libping v0.10.0 h1:06W7GyGzrry4rjoC7bkyvshZ8hVhTyrb6/MePe3Dj1s=
-github.com/xchacha20-poly1305/libping v0.10.0/go.mod h1:RuJvaUFkwSJ8XlDKVIGpmGhzTcZvOPe9QVQAg4jLtfQ=
 github.com/xchacha20-poly1305/libping v0.10.1 h1:R9vGFJZKIfhV7hK9Wx186ilVhBmLr6Lqm8uEAuU0Hiw=
 github.com/xchacha20-poly1305/libping v0.10.1/go.mod h1:RuJvaUFkwSJ8XlDKVIGpmGhzTcZvOPe9QVQAg4jLtfQ=
 golang.org/x/net v0.43.0 h1:lat02VYK2j4aLzMzecihNvTlJNQUq316m2Mr9rnM6YE=
