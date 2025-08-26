@@ -26,6 +26,12 @@ builds:
       - 7
     mod_timestamp: "{{ .CommitTimestamp }}"
 
+archives:
+  - formats: ["tar.gz"]
+    format_overrides:
+      - goos: windows
+        formats: ["zip"]
+
 release:
   draft: true
   replace_existing_draft: true
