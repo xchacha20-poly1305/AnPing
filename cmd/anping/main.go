@@ -122,12 +122,11 @@ func main() {
 	if addr.IsFqdn() {
 		const resolveTimeout = 3 * time.Second
 		ctx, cancel := context.WithTimeout(context.Background(), resolveTimeout)
-		var network string
+		network := N.NetworkIP
 		if justIPv4 {
-			network = N.NetworkIP + "4"
-		}
-		if justIPv6 {
-			network = N.NetworkIP + "6"
+			network += "4"
+		} else if justIPv6 {
+			network += "6"
 		}
 		ips, err := net.DefaultResolver.LookupIP(ctx, network, addr.Fqdn)
 		cancel()
@@ -145,7 +144,13 @@ func main() {
 			})
 		}
 		if len(ips) == 0 {
-			fatalf("Not found any IP of %s\n", addr.Fqdn)
+			var situation string
+			if justIPv4 {
+				situation = " in IPv4 only"
+			} else if justIPv6 {
+				situation = " in IPv6 only"
+			}
+			fatalf("Not found any IP of %s%s\n", addr.Fqdn, situation)
 		}
 		addr.Fqdn = ""
 		addr.Addr = M.AddrFromIP(ips[0])
